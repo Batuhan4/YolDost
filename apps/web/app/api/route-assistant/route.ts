@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 120;
 
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_ROUTES = 3;
@@ -141,18 +142,29 @@ export async function POST(request: NextRequest) {
     join(tmpdir(), "yoldost-route-assistant-"),
   );
 
+  const promptOptions =
+    process.env.VERCEL === "1"
+      ? {
+          apiKey,
+          model: { id: process.env.CURSOR_MODEL || "composer-2" },
+          name: "YolDost Route Assistant",
+          mode: "plan" as const,
+          cloud: { skipReviewerRequest: true },
+        }
+      : {
+          apiKey,
+          model: { id: process.env.CURSOR_MODEL || "composer-2" },
+          name: "YolDost Route Assistant",
+          mode: "plan" as const,
+          local: {
+            cwd: workingDirectory,
+            settingSources: [] as [],
+            sandboxOptions: { enabled: true },
+          },
+        };
+
   try {
-    const result = await Agent.prompt(buildPrompt(parsed), {
-      apiKey,
-      model: { id: process.env.CURSOR_MODEL || "composer-2" },
-      name: "YolDost Route Assistant",
-      mode: "plan",
-      local: {
-        cwd: workingDirectory,
-        settingSources: [],
-        sandboxOptions: { enabled: true },
-      },
-    });
+    const result = await Agent.prompt(buildPrompt(parsed), promptOptions);
 
     if (result.status !== "finished" || !result.result?.trim()) {
       return NextResponse.json(
