@@ -1,0 +1,30 @@
+{
+  "$comment": "Synthetic fixture — metadata only, contains NO imagery and NO personal data. Used by workers/cv/run_demo.py placeholder mode for repeatable demo runs.",
+  "demo_run_name": "Güngören fixture run",
+  "images": [
+    {
+      "image_id": "fixture-gungoren-001",
+      "provider": "fixture",
+      "external_ref": "gungoren/merkez-mah-01",
+      "lat": 41.0192,
+      "lng": 28.8725,
+      "heading": 90
+    },
+    {
+      "image_id": "fixture-gungoren-002",
+      "provider": "fixture",
+      "external_ref": "gungoren/gencosman-02",
+      "lat": 41.0151,
+      "lng": 28.8689,
+      "heading": 180
+    },
+    {
+      "image_id": "fixture-gungoren-003",
+      "provider": "fixture",
+      "external_ref": "gungoren/tozkoparan-03",
+      "lat": 41.0235,
+      "lng": 28.8841,
+      "heading": 270
+    }
+  ]
+}

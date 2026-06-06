@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Batuhan4/hackcursor/packages/contracts/schemas/anonymization-event.schema.json",
+  "title": "AnonymizationEvent",
+  "description": "Audit record proving an image passed the irreversible anonymization gate before any product detection ran. Stores only region counts and the masking method — never region contents, crops, embeddings, identities or plate text. Those fields do not exist on purpose (KVKK).",
+  "type": "object",
+  "required": ["id", "demo_run_id", "image_id", "region_type", "region_count", "method", "irreversible"],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "demo_run_id": {
+      "type": "string"
+    },
+    "image_id": {
+      "type": "string"
+    },
+    "region_type": {
+      "type": "string",
+      "enum": ["face", "license_plate"]
+    },
+    "region_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many regions of this type were masked. Counts only."
+    },
+    "method": {
+      "type": "string",
+      "enum": ["gaussian_blur", "solid_mask"]
+    },
+    "irreversible": {
+      "type": "boolean",
+      "const": true,
+      "description": "Always true. Reversible masking is not a valid state."
+    },
+    "processed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

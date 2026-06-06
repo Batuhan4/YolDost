@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Batuhan4/hackcursor/packages/contracts/schemas/demo-run.schema.json",
+  "title": "DemoRun",
+  "description": "One repeatable demo execution over a fixed set of input images.",
+  "type": "object",
+  "required": ["id", "name", "status", "image_count", "detection_count", "anonymized_region_count"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier (UUID, or deterministic id for fixture runs)."
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed"]
+    },
+    "image_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "detection_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "anonymized_region_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of face/plate regions irreversibly masked in this run."
+    },
+    "model_id": {
+      "type": ["string", "null"],
+      "description": "Hugging Face model reference used for urban object detection."
+    },
+    "started_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

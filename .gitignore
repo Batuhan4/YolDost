@@ -5,12 +5,16 @@
 *.pem
 *.key
 
+# Lokal referans repolar ve ajan çalışma alanı
+.omx/
+
 # Node
 node_modules/
 .next/
 out/
 dist/
 .vercel/
+*.tsbuildinfo
 
 # Go
 *.exe
@@ -18,11 +22,14 @@ dist/
 *.out
 /bin/
 /tmp/
+services/api/bin/
 
 # Python (CV pipeline)
 .venv/
+venv/
 __pycache__/
 *.pyc
+*.egg-info/
 
 # KVKK / veri güvenliği — ham veya kişisel veri içerebilecek dosyalar
 data/raw/
@@ -33,7 +40,15 @@ captures/
 uploads/
 exports/raw/
 
-# Model ağırlıkları (büyük dosyalar)
+# İşlenmiş çıktılar üretilir, commit edilmez (şema data/fixtures ile belgelenir)
+data/processed/*
+!data/processed/.gitkeep
+
+# Üretilen rapor (scripts/generate-demo-report.py çıktısı)
+docs/demo-report.md
+
+# Model ağırlıkları (büyük dosyalar — Hugging Face'ten indirilir, lokal cache)
+models/
 *.pt
 *.onnx
 *.weights

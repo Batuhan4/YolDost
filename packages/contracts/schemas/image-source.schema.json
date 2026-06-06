@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Batuhan4/hackcursor/packages/contracts/schemas/image-source.schema.json",
+  "title": "ImageSource",
+  "description": "Metadata for one input image. Raw pixels are never stored in the system of record; only anonymized derivatives may be referenced. There is intentionally no raw-image URI field.",
+  "type": "object",
+  "required": ["id", "demo_run_id", "provider", "anonymized"],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "demo_run_id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["google_street_view", "google_maps_static", "fixture", "field_upload"]
+    },
+    "external_ref": {
+      "type": ["string", "null"],
+      "description": "Provider reference (e.g. Street View pano id or fixture key). Never an image payload."
+    },
+    "lat": {
+      "type": ["number", "null"],
+      "minimum": -90,
+      "maximum": 90
+    },
+    "lng": {
+      "type": ["number", "null"],
+      "minimum": -180,
+      "maximum": 180
+    },
+    "heading": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 360
+    },
+    "captured_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "anonymized": {
+      "type": "boolean",
+      "description": "True only after the irreversible face/plate anonymization gate has completed."
+    },
+    "anonymized_uri": {
+      "type": ["string", "null"],
+      "description": "Location of the anonymized derivative image. Raw image URIs are forbidden."
+    }
+  },
+  "additionalProperties": false
+}
