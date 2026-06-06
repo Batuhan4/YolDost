@@ -1,0 +1,253 @@
+{
+  "run_id": "20260606T110435Z-modal-scene",
+  "created_at": "2026-06-06T11:04:35.519756+00:00",
+  "task": "urban_suburban_scene_context",
+  "metric_scope": "agreement with model-generated weak labels",
+  "dataset": {
+    "id": "Reubencf/streetview-global",
+    "revision": "a206537534dc0e8165e0e7d36f08df14795127db",
+    "license": "CC-BY-SA-4.0",
+    "source": "Mapillary contributors via Hugging Face",
+    "selection": {
+      "setting": [
+        "urban",
+        "suburban"
+      ],
+      "time_of_day": [
+        "day"
+      ],
+      "seed": 42
+    }
+  },
+  "anonymization": {
+    "method": "solid_mask",
+    "padding_ratio": 0.2,
+    "face_model": {
+      "id": "arnabdhar/YOLOv8-Face-Detection",
+      "revision": "52fa54977207fa4f021de949b515fb19dcab4488",
+      "threshold": 0.15
+    },
+    "plate_model": {
+      "id": "Koushim/yolov8-license-plate-detection",
+      "revision": "9aaa5cd490abe0c165882ba87f4f62658ab54d01",
+      "threshold": 0.15
+    },
+    "faces_masked": 1,
+    "plates_masked": 13
+  },
+  "base_model": {
+    "id": "google/vit-base-patch16-224-in21k",
+    "revision": "b4569560a39a0f1af58e3ddaf17facf20ab919b0"
+  },
+  "gpu": "NVIDIA B200",
+  "seed": 42,
+  "hyperparameters": {
+    "epochs": 30,
+    "batch_size": 8,
+    "learning_rate": 0.001,
+    "optimizer": "AdamW",
+    "weight_decay": 0.01,
+    "frozen_backbone": true
+  },
+  "split": {
+    "train_count": 36,
+    "validation_count": 10,
+    "train_labels": {
+      "suburban": 18,
+      "urban": 18
+    },
+    "validation_labels": {
+      "suburban": 5,
+      "urban": 5
+    }
+  },
+  "training_seconds": 44.989476,
+  "epochs": [
+    {
+      "epoch": 1,
+      "train_loss": 0.676732,
+      "validation_accuracy": 0.8
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.614844,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.566569,
+      "validation_accuracy": 0.6
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.52734,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.48619,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.466096,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.423211,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.398725,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.368507,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.354328,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.328852,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.306687,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.295158,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.285648,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.265635,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.256544,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.246869,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.233497,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.217886,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.212096,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 21,
+      "train_loss": 0.20174,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 22,
+      "train_loss": 0.195401,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 23,
+      "train_loss": 0.183146,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 24,
+      "train_loss": 0.171873,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 25,
+      "train_loss": 0.173216,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 26,
+      "train_loss": 0.166761,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 27,
+      "train_loss": 0.160977,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 28,
+      "train_loss": 0.146059,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 29,
+      "train_loss": 0.13859,
+      "validation_accuracy": 0.7
+    },
+    {
+      "epoch": 30,
+      "train_loss": 0.137776,
+      "validation_accuracy": 0.7
+    }
+  ],
+  "validation": {
+    "best_epoch": 1,
+    "accuracy": 0.8,
+    "confusion_matrix": [
+      [
+        4,
+        1
+      ],
+      [
+        1,
+        4
+      ]
+    ],
+    "labels": [
+      "suburban",
+      "urban"
+    ],
+    "per_class": {
+      "suburban": {
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8
+      },
+      "urban": {
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8
+      }
+    },
+    "macro_f1": 0.8
+  },
+  "limitations": [
+    "Dataset setting labels were generated by a vision-language model and are weak labels.",
+    "This metric is not SegFormer mIoU and not pedestrian-density accuracy.",
+    "The classifier is an auxiliary context model; physical street metrics remain the product core."
+  ]
+}

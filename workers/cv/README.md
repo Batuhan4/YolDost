@@ -49,6 +49,10 @@ set -a; . ./.env; set +a
 
 # Run semantic street analysis and generate reports/runs/<run-id>/.
 .venv/bin/python workers/cv/analyze_streets.py --device auto
+
+# Auxiliary measurable training run on anonymized derivatives.
+# Uses the fastest available GPU in this order: B200, H200, H100.
+modal run workers/cv/modal_train_scene.py --epochs 5 --batch-size 8
 ```
 
 Real-imagery mode requires `requirements.txt` installed **and** the
