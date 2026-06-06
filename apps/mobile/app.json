@@ -1,15 +1,23 @@
 {
   "expo": {
-    "name": "Urban Object Inventory",
+    "name": "YolDost",
     "slug": "urban-object-inventory",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "YolDost uses foreground location during the demo to detect proximity to a clearly labeled demo partner cafe."
+      }
     },
     "android": {
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -18,6 +26,21 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "YolDost uses foreground location during the demo to detect proximity to a clearly labeled demo partner cafe."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "partner-offers",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
