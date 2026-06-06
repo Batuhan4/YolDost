@@ -50,6 +50,7 @@ Beklenen degisken aileleri:
 - `HUGGINGFACE_API_KEY` veya `HF_TOKEN`
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` veya kullanilan diger AI servis anahtarlari
 - `GEMINI_API_KEY` veya kullanilan diger Google AI servis anahtarlari
+- `GEMINI_MODEL`; varsayilan tercih `gemini-3.1-flash-lite`
 - `DATABASE_URL`
 - `NEXT_PUBLIC_API_BASE_URL`
 
