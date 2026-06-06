@@ -30,3 +30,20 @@
 The Go service on Render is the mandatory backend and live routing authority.
 The Cursor SDK route is an additive AI Adaptation integration on Vercel because
 the official SDK is TypeScript. It does not replace the Go API.
+
+## Live Network Smoke Tests (2026-06-06)
+
+| Check | Result |
+| --- | --- |
+| Render `/health/live` | `{"status":"alive"}` |
+| Render `/health/ready` | `database: not_configured`, `repository: fixture (deterministic demo data)` |
+| Render Postgres provisioned | **No** — Render API lists zero Postgres instances |
+| Render `DATABASE_URL` env | **Not set** on `omnisight-api` |
+| Go backend data source | **Fixture-only** — postgres adapter skeleton; `main.go` always uses in-memory repo |
+| Render CORS (Vercel origin) | `Access-Control-Allow-Origin: https://web-lake-phi-31.vercel.app` |
+| Render CORS (localhost) | `Access-Control-Allow-Origin: http://localhost:3000` |
+| Render `GET /api/v1/demo-runs` from Vercel origin | 200, fixture payload |
+| Render `POST /api/v1/routes` from Vercel origin | 200, live Google alternatives (`generated_live: true`) |
+| Vercel production alias | [https://web-lake-phi-31.vercel.app](https://web-lake-phi-31.vercel.app) |
+| Vercel `NEXT_PUBLIC_API_BASE_URL` (Production) | `https://omnisight-api-70gd.onrender.com` |
+| Vercel `/` and `/panel` | HTTP 200 |

@@ -181,9 +181,10 @@ The integration evidence is recorded in
 
 ## Known Limits
 
-- Render Postgres adapter is still a skeleton; production deploy currently serves
-  the deterministic fixture repository even when `DATABASE_URL` is unset.
-  `/health/ready` reports this explicitly.
+- Render Postgres is **not provisioned yet** and `DATABASE_URL` is **not set**
+  on the live `omnisight-api` service. The postgres adapter is still a skeleton;
+  production currently serves the deterministic fixture repository only.
+  `/health/ready` reports `database: not_configured` explicitly.
 - Current physical-analysis coverage is dataset/demo coverage, not city-wide
   coverage. Routes without matching coverage are explicitly unranked.
 - Google route payloads are not persistently cached and require Google
