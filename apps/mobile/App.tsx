@@ -1,9 +1,8 @@
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -12,34 +11,45 @@ import {
   View,
 } from 'react-native';
 
-import {
-  type DemoOffer,
-  formatDistance,
-  getOfferProximity,
-} from './offerProximity';
-import RoutePlannerSection from './RoutePlannerSection';
+import { getOfferProximity } from './offerProximity';
+import GuideScreen from './screens/GuideScreen';
+import OffersScreen from './screens/OffersScreen';
+import RoutesScreen from './screens/RoutesScreen';
+import StopsScreen from './screens/StopsScreen';
+import { colors, shared, spacing } from './theme';
+import type {
+  ApiSnapshot,
+  DemoPartner,
+  DemoRun,
+  HealthResponse,
+  ListResponse,
+  SensorSnapshot,
+  TabKey,
+} from './types';
 
 /**
- * Field shell for the YolDost mobile demo.
- * Minimal by design (hackathon scope): one screen proving Expo talks to the
- * same Go API as the web demo and a real foreground proximity notification.
+ * YolDost mobile shell: four-tab layout (Rehber / Rotalar / Duraklar /
+ * Fırsatlar) on the light DESIGN.md token set. Tab switching is plain state —
+ * no navigation dependency (hackathon scope). All live behavior is preserved:
+ * Go API health + demo runs, route planner, foreground location tracking and
+ * the local partner-offer proximity notification.
  */
 
 const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 const API_BASE_URL = stripTrailingSlash(RAW_API_BASE_URL || '');
 const API_SOURCE = RAW_API_BASE_URL
   ? 'EXPO_PUBLIC_API_BASE_URL'
-  : 'missing EXPO_PUBLIC_API_BASE_URL';
+  : 'EXPO_PUBLIC_API_BASE_URL eksik';
 const OFFER_NOTIFICATION_CHANNEL_ID = 'partner-offers';
 
-const DEMO_PARTNER: DemoOffer & { areaLabel: string; offer: string } = {
+const DEMO_PARTNER: DemoPartner = {
   id: 'demo-cafe-gungoren',
   name:
     process.env.EXPO_PUBLIC_DEMO_OFFER_NAME?.trim() ||
-    'Komagene-style YolDost Demo Cafe',
+    'YolDost Demo Kafe',
   partnerName:
     process.env.EXPO_PUBLIC_DEMO_OFFER_PARTNER?.trim() ||
-    'Demo Cafe Partner',
+    'Demo Kafe Partneri',
   latitude: numberFromEnv(process.env.EXPO_PUBLIC_DEMO_OFFER_LATITUDE, 41.010259),
   longitude: numberFromEnv(
     process.env.EXPO_PUBLIC_DEMO_OFFER_LONGITUDE,
@@ -51,11 +61,18 @@ const DEMO_PARTNER: DemoOffer & { areaLabel: string; offer: string } = {
   ),
   areaLabel:
     process.env.EXPO_PUBLIC_DEMO_OFFER_AREA?.trim() ||
-    'Gungoren demo point',
+    'Güngören demo noktası',
   offer:
     process.env.EXPO_PUBLIC_DEMO_OFFER_TEXT?.trim() ||
-    'Demo partner offer: take a short active-route break nearby. Sponsorship never changes route scores.',
+    'Demo partner teklifi: yakındaki aktif rotada kısa bir mola ver. Sponsorluk rota skorunu asla değiştirmez.',
 };
+
+const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: 'guide', label: 'Rehber', icon: '◐' },
+  { key: 'routes', label: 'Rotalar', icon: '→' },
+  { key: 'stops', label: 'Duraklar', icon: '●' },
+  { key: 'offers', label: 'Fırsatlar', icon: '↗' },
+];
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -65,59 +82,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
-
-type DemoRunStatus = 'pending' | 'running' | 'completed' | 'failed';
-
-interface HealthResponse {
-  status: string;
-  services?: Record<string, string>;
-}
-
-interface DemoRun {
-  id: string;
-  name: string;
-  status: DemoRunStatus;
-  image_count: number;
-  detection_count: number;
-  anonymized_region_count: number;
-  model_id: string | null;
-  started_at: string | null;
-  completed_at: string | null;
-}
-
-interface ListResponse<T> {
-  data: T[];
-  count: number;
-}
-
-interface ApiSnapshot {
-  health: HealthResponse | null;
-  demoRuns: DemoRun[];
-  demoRunCount: number;
-  checkedAt: string | null;
-  errors: string[];
-}
-
-type SensorStatus =
-  | 'idle'
-  | 'requesting'
-  | 'tracking'
-  | 'unavailable'
-  | 'denied'
-  | 'error';
-
-interface SensorSnapshot {
-  status: SensorStatus;
-  locationPermission: string;
-  notificationPermission: string;
-  location: Location.LocationObject | null;
-  distanceMeters: number | null;
-  offerSent: boolean;
-  notificationId: string | null;
-  notificationTrigger: string;
-  message: string;
-  error: string | null;
-}
 
 const EMPTY_SNAPSHOT: ApiSnapshot = {
   health: null,
@@ -129,14 +93,15 @@ const EMPTY_SNAPSHOT: ApiSnapshot = {
 
 const EMPTY_SENSOR: SensorSnapshot = {
   status: 'idle',
-  locationPermission: 'not requested',
-  notificationPermission: 'not requested',
+  locationPermission: 'istenmedi',
+  notificationPermission: 'istenmedi',
   location: null,
   distanceMeters: null,
   offerSent: false,
   notificationId: null,
-  notificationTrigger: 'waiting for location',
-  message: 'Tap Start foreground tracking to request permission on device.',
+  notificationTrigger: 'konum bekleniyor',
+  message:
+    'Cihazda izin istemek için "Takibi başlat" düğmesine dokun.',
   error: null,
 };
 
@@ -147,7 +112,7 @@ function stripTrailingSlash(value: string) {
 async function getJSON<T>(path: string): Promise<T> {
   if (!API_BASE_URL) {
     throw new Error(
-      'EXPO_PUBLIC_API_BASE_URL is not configured; final demo requires the Render API URL.',
+      'EXPO_PUBLIC_API_BASE_URL yapılandırılmadı; final demo canlı Render API adresini gerektirir.',
     );
   }
 
@@ -156,7 +121,7 @@ async function getJSON<T>(path: string): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`${path} returned HTTP ${response.status}`);
+    throw new Error(`${path} HTTP ${response.status} döndürdü`);
   }
 
   return (await response.json()) as T;
@@ -190,12 +155,7 @@ async function loadApiSnapshot(): Promise<ApiSnapshot> {
 }
 
 function messageFromError(error: unknown) {
-  return error instanceof Error ? error.message : 'API request failed';
-}
-
-function formatStatus(status?: DemoRunStatus) {
-  if (!status) return 'waiting for run';
-  return status.replace('_', ' ');
+  return error instanceof Error ? error.message : 'API isteği başarısız oldu';
 }
 
 function numberFromEnv(value: string | undefined, fallback: number) {
@@ -203,17 +163,12 @@ function numberFromEnv(value: string | undefined, fallback: number) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function formatMaybeDistance(value: number | null) {
-  return value === null
-    ? 'waiting for foreground location'
-    : formatDistance(value);
-}
-
 async function ensureNotificationPermission() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync(OFFER_NOTIFICATION_CHANNEL_ID, {
-      description: 'Local demo alerts when the user is near an offer point.',
-      name: 'Partner proximity offers',
+      description:
+        'Kullanıcı bir teklif noktasına yaklaştığında yerel demo uyarıları.',
+      name: 'Yol üstü fırsat bildirimleri',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
     });
@@ -237,7 +192,7 @@ async function schedulePartnerOffer(
 ) {
   return Notifications.scheduleNotificationAsync({
     content: {
-      title: `${DEMO_PARTNER.partnerName} nearby`,
+      title: `${DEMO_PARTNER.partnerName} yakınında`,
       body: DEMO_PARTNER.offer,
       data: {
         distance_meters:
@@ -258,6 +213,7 @@ async function schedulePartnerOffer(
 }
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<TabKey>('guide');
   const [snapshot, setSnapshot] = useState<ApiSnapshot>(EMPTY_SNAPSHOT);
   const [loading, setLoading] = useState(true);
   const [sensor, setSensor] = useState<SensorSnapshot>(EMPTY_SENSOR);
@@ -265,7 +221,7 @@ export default function App() {
     null,
   );
   const offerSentRef = useRef(false);
-  const notificationPermissionRef = useRef('not requested');
+  const notificationPermissionRef = useRef('istenmedi');
 
   async function refreshStatus() {
     setLoading(true);
@@ -316,9 +272,9 @@ export default function App() {
         setSensor((current) => ({
           ...current,
           notificationId: notification.request.identifier,
-          notificationTrigger: 'shown locally',
+          notificationTrigger: 'yerel olarak gösterildi',
           offerSent: true,
-          message: 'Local partner offer notification was shown.',
+          message: 'Yerel partner teklif bildirimi gösterildi.',
           error: null,
         }));
       },
@@ -333,7 +289,9 @@ export default function App() {
     const proximity = getOfferProximity(location.coords, DEMO_PARTNER);
     const inRange = proximity.isNear;
     let notificationId: string | null = null;
-    let notificationTrigger = inRange ? 'inside radius' : 'waiting for radius';
+    let notificationTrigger = inRange
+      ? 'yarıçap içinde'
+      : 'yarıçap bekleniyor';
 
     if (
       inRange &&
@@ -341,14 +299,14 @@ export default function App() {
       notificationPermissionRef.current === 'granted'
     ) {
       offerSentRef.current = true;
-      notificationTrigger = 'scheduling local notification';
+      notificationTrigger = 'yerel bildirim zamanlanıyor';
       notificationId = await schedulePartnerOffer(
         'proximity',
         proximity.distanceMeters,
       );
-      notificationTrigger = 'scheduled locally';
+      notificationTrigger = 'yerel olarak zamanlandı';
     } else if (inRange && notificationPermissionRef.current !== 'granted') {
-      notificationTrigger = 'blocked by notification permission';
+      notificationTrigger = 'bildirim izni engelledi';
     }
 
     setSensor((current) => ({
@@ -360,8 +318,8 @@ export default function App() {
       notificationId: notificationId ?? current.notificationId,
       notificationTrigger,
       message: inRange
-        ? 'Inside demo cafe proximity radius. Local offer notification flow is active.'
-        : 'Foreground location tracking is active.',
+        ? 'Demo kafe yakınlık yarıçapının içindesin. Yerel teklif bildirimi akışı aktif.'
+        : 'Ön planda konum takibi aktif.',
       error: null,
     }));
   }
@@ -370,8 +328,8 @@ export default function App() {
     setSensor((current) => ({
       ...current,
       status: 'requesting',
-        notificationTrigger: 'requesting permissions',
-      message: 'Requesting foreground location and notification permissions...',
+      notificationTrigger: 'izinler isteniyor',
+      message: 'Ön plan konum ve bildirim izinleri isteniyor...',
       error: null,
     }));
 
@@ -381,9 +339,9 @@ export default function App() {
         setSensor((current) => ({
           ...current,
           status: 'unavailable',
-          notificationTrigger: 'waiting for location services',
-          message: 'Location services are disabled on this device.',
-          error: 'Enable device location services, then try again.',
+          notificationTrigger: 'konum servisleri bekleniyor',
+          message: 'Bu cihazda konum servisleri kapalı.',
+          error: 'Cihaz konum servislerini aç ve tekrar dene.',
         }));
         return;
       }
@@ -395,10 +353,10 @@ export default function App() {
           ...current,
           status: 'denied',
           locationPermission: locationPermission.status,
-          notificationTrigger: 'blocked by location permission',
-          message: 'Foreground location permission was not granted.',
+          notificationTrigger: 'konum izni engelledi',
+          message: 'Ön plan konum izni verilmedi.',
           error:
-            'The mobile demo cannot track proximity until location permission is allowed.',
+            'Konum izni verilene kadar mobil demo yakınlığı takip edemez.',
         }));
         return;
       }
@@ -431,22 +389,22 @@ export default function App() {
         notificationTrigger:
           notificationPermission === 'granted'
             ? current.notificationTrigger
-            : 'blocked by notification permission',
+            : 'bildirim izni engelledi',
         message:
           notificationPermission === 'granted'
             ? current.message
-            : 'Tracking is active, but notification permission is unavailable.',
+            : 'Takip aktif, ancak bildirim izni yok.',
         error:
           notificationPermission === 'granted'
             ? null
-            : 'Allow notifications to show the demo cafe proximity offer.',
+            : 'Demo kafe yakınlık teklifini göstermek için bildirimlere izin ver.',
       }));
     } catch (error) {
       setSensor((current) => ({
         ...current,
         status: 'error',
-        notificationTrigger: 'error',
-        message: 'Location or notification flow is unavailable.',
+        notificationTrigger: 'hata',
+        message: 'Konum veya bildirim akışı kullanılamıyor.',
         error: messageFromError(error),
       }));
     }
@@ -458,10 +416,10 @@ export default function App() {
     setSensor((current) => ({
       ...current,
       status: 'idle',
-        notificationTrigger: current.offerSent
-          ? current.notificationTrigger
-          : 'tracking stopped',
-      message: 'Foreground tracking stopped.',
+      notificationTrigger: current.offerSent
+        ? current.notificationTrigger
+        : 'takip durduruldu',
+      message: 'Ön plan takibi durduruldu.',
     }));
   }
 
@@ -473,8 +431,8 @@ export default function App() {
         setSensor((current) => ({
           ...current,
           notificationPermission: permission,
-          notificationTrigger: 'blocked by notification permission',
-          error: 'Notification permission is required for the demo offer.',
+          notificationTrigger: 'bildirim izni engelledi',
+          error: 'Demo teklifi için bildirim izni gerekiyor.',
         }));
         return;
       }
@@ -488,224 +446,97 @@ export default function App() {
         notificationPermission: permission,
         offerSent: true,
         notificationId,
-        notificationTrigger: 'manual local notification',
+        notificationTrigger: 'elle gönderilen yerel bildirim',
         message:
-          'Demo cafe offer notification was scheduled by explicit presenter action.',
+          'Demo kafe teklif bildirimi, sunucunun açık eylemiyle zamanlandı.',
         error: null,
       }));
     } catch (error) {
       setSensor((current) => ({
         ...current,
         status: 'error',
-        notificationTrigger: 'error',
+        notificationTrigger: 'hata',
         error: messageFromError(error),
       }));
     }
   }
 
-  const latestRun = snapshot.demoRuns[0];
   const apiOnline = snapshot.health !== null && snapshot.errors.length === 0;
-  const healthBadge = loading ? 'checking' : apiOnline ? 'online' : 'needs check';
-  const healthBadgeStyle = apiOnline ? styles.badgeOk : styles.badgeWarn;
-  const summary = useMemo(() => {
-    if (!latestRun) {
-      return 'No demo run returned yet. Check the API URL and seed data.';
-    }
-
-    return `${latestRun.name} - ${latestRun.image_count} images, ${latestRun.detection_count} inanimate detections, ${latestRun.anonymized_region_count} anonymized regions`;
-  }, [latestRun]);
+  const activeTabLabel = TABS.find((tab) => tab.key === activeTab)?.label ?? '';
 
   return (
     <View style={styles.container}>
+      <View style={styles.appBar}>
+        <Text style={styles.wordmark}>YolDost</Text>
+        <Text style={styles.appBarSection}>{activeTabLabel}</Text>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>YolDost Mobile Demo</Text>
-        <Text style={styles.tagline}>
-          Live Go API check for safer-route potential from physical environment
-          indicators.
+        {activeTab === 'guide' && (
+          <GuideScreen
+            apiOnline={apiOnline}
+            loading={loading}
+            onGoToRoutes={() => setActiveTab('routes')}
+          />
+        )}
+        {activeTab === 'routes' && (
+          <RoutesScreen
+            apiBaseUrl={API_BASE_URL}
+            apiSource={API_SOURCE}
+            snapshot={snapshot}
+            loading={loading}
+            onRefresh={() => void refreshStatus()}
+          />
+        )}
+        {activeTab === 'stops' && (
+          <StopsScreen
+            hasCoverage={snapshot.demoRuns.length > 0}
+            onGoToRoutes={() => setActiveTab('routes')}
+          />
+        )}
+        {activeTab === 'offers' && (
+          <OffersScreen
+            partner={DEMO_PARTNER}
+            sensor={sensor}
+            onStartTracking={() => void startLocationDemo()}
+            onStopTracking={stopLocationDemo}
+            onSendManualOffer={() => void sendManualOffer()}
+          />
+        )}
+        <Text style={[shared.dim, styles.footerNote]}>
+          Rota önerileri fiziksel çevre göstergelerinden üretilir; gerçek
+          dünya güvenliği asla garanti edilmez.
         </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>API</Text>
-          <Text style={styles.mono}>{API_BASE_URL || 'not configured'}</Text>
-          <Text style={styles.dim}>Source: {API_SOURCE}</Text>
-          {!API_BASE_URL && (
-            <Text style={styles.error}>
-              Final demo unavailable until EXPO_PUBLIC_API_BASE_URL points to
-              the live Render API.
-            </Text>
-          )}
-          <Text style={styles.dim}>Health: GET /health/live</Text>
-          <Text style={styles.dim}>Runs: GET /api/v1/demo-runs</Text>
-        </View>
-
-        {API_BASE_URL ? (
-          <RoutePlannerSection apiBaseUrl={API_BASE_URL} />
-        ) : null}
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Live Go API Status</Text>
-            <View style={[styles.badge, healthBadgeStyle]}>
-              <Text style={styles.badgeText}>{healthBadge}</Text>
-            </View>
-          </View>
-          {loading ? (
-            <View style={styles.inline}>
-              <ActivityIndicator color="#1f6f4a" />
-              <Text style={styles.body}>Calling live API...</Text>
-            </View>
-          ) : (
-            <>
-              <Text style={styles.body}>
-                Health: {snapshot.health?.status ?? 'unavailable'}
-              </Text>
-              <Text style={styles.body}>Demo runs: {snapshot.demoRunCount}</Text>
-              <Text style={styles.dim}>
-                Last checked: {snapshot.checkedAt ?? 'not checked'}
-              </Text>
-            </>
-          )}
-          {snapshot.errors.map((error) => (
-            <Text key={error} style={styles.error}>
-              {error}
-            </Text>
-          ))}
-          <Pressable
-            accessibilityRole="button"
-            onPress={refreshStatus}
-            style={({ pressed }) => [
-              styles.button,
-              pressed || loading ? styles.buttonPressed : null,
-            ]}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Refreshing...' : 'Refresh live status'}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Latest Demo Run</Text>
-            <View style={[styles.badge, styles.badgeMuted]}>
-              <Text style={styles.badgeText}>{formatStatus(latestRun?.status)}</Text>
-            </View>
-          </View>
-          <Text style={styles.body}>{summary}</Text>
-          <Text style={styles.dim}>
-            Mobile reads the same anonymized demo-run metadata used by the web
-            dashboard.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Foreground Location</Text>
-            <View
-              style={[
-                styles.badge,
-                sensor.status === 'tracking' ? styles.badgeOk : styles.badgeWarn,
-              ]}
-            >
-              <Text style={styles.badgeText}>{sensor.status}</Text>
-            </View>
-          </View>
-          <Text style={styles.body}>{sensor.message}</Text>
-          <Text style={styles.dim}>
-            Location permission: {sensor.locationPermission}
-          </Text>
-          <Text style={styles.dim}>
-            Notifications: {sensor.notificationPermission}
-          </Text>
-          {sensor.location && (
-            <Text style={styles.mono}>
-              {sensor.location.coords.latitude.toFixed(5)},{' '}
-              {sensor.location.coords.longitude.toFixed(5)}
-            </Text>
-          )}
-          {sensor.error && <Text style={styles.error}>{sensor.error}</Text>}
-          <View style={styles.buttonRow}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={startLocationDemo}
-              style={({ pressed }) => [
-                styles.button,
-                pressed || sensor.status === 'requesting'
-                  ? styles.buttonPressed
-                  : null,
-              ]}
-              disabled={sensor.status === 'requesting'}
-            >
-              <Text style={styles.buttonText}>
-                {sensor.status === 'requesting'
-                  ? 'Requesting...'
-                  : 'Start foreground tracking'}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={stopLocationDemo}
-              style={({ pressed }) => [
-                styles.buttonSecondary,
-                pressed ? styles.buttonPressed : null,
-              ]}
-            >
-              <Text style={styles.buttonSecondaryText}>Stop</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Demo Partner Offer</Text>
-          <Text style={styles.body}>{DEMO_PARTNER.name}</Text>
-          <Text style={styles.dim}>Partner: {DEMO_PARTNER.partnerName}</Text>
-          <Text style={styles.dim}>
-            Radius: {formatDistance(DEMO_PARTNER.radiusMeters)} around{' '}
-            {DEMO_PARTNER.areaLabel}.
-          </Text>
-          <Text style={styles.dim}>
-            Offer point: {DEMO_PARTNER.latitude.toFixed(5)},{' '}
-            {DEMO_PARTNER.longitude.toFixed(5)}
-          </Text>
-          <Text style={styles.dim}>
-            Distance: {formatMaybeDistance(sensor.distanceMeters)}
-          </Text>
-          <Text style={styles.dim}>
-            Notification trigger: {sensor.notificationTrigger}
-          </Text>
-          <Text style={styles.dim}>
-            Offer sent: {sensor.offerSent ? 'yes' : 'not yet'}
-          </Text>
-          <Text style={styles.dim}>
-            Notification id: {sensor.notificationId ?? 'none yet'}
-          </Text>
-          <Text style={styles.body}>{DEMO_PARTNER.offer}</Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={sendManualOffer}
-            style={({ pressed }) => [
-              styles.button,
-              pressed ? styles.buttonPressed : null,
-            ]}
-          >
-            <Text style={styles.buttonText}>
-              Send explicit demo offer notification
-            </Text>
-          </Pressable>
-          <Text style={styles.dim}>
-            This button is a visible presenter test hook, not a silent mock
-            fallback. Real proximity uses foreground device location.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Demo Guardrails</Text>
-          <Text style={styles.body}>
-            No live person counting or identity analysis. The score is a
-            physical-environment indicator, not a real-world safety claim.
-          </Text>
-        </View>
       </ScrollView>
+
+      <View style={styles.tabBar}>
+        {TABS.map((tab) => {
+          const selected = tab.key === activeTab;
+          return (
+            <Pressable
+              key={tab.key}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              onPress={() => setActiveTab(tab.key)}
+              style={styles.tabItem}
+            >
+              <Text
+                style={[styles.tabIcon, selected ? styles.tabIconSelected : null]}
+              >
+                {tab.icon}
+              </Text>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  selected ? styles.tabLabelSelected : null,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
       <StatusBar style="dark" />
     </View>
   );
@@ -713,122 +544,65 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.surface,
     flex: 1,
-    backgroundColor: '#f4f6f8',
+  },
+  appBar: {
+    alignItems: 'baseline',
+    backgroundColor: colors.panel,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 56,
+  },
+  wordmark: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  appBarSection: {
+    color: colors.inkDim,
+    fontSize: 13,
+    fontWeight: '600',
   },
   scroll: {
-    padding: 20,
-    paddingTop: 64,
-    gap: 12,
+    gap: spacing.md,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1b2733',
+  footerNote: {
+    marginTop: spacing.xs,
   },
-  tagline: {
-    fontSize: 13,
-    color: '#5b6b7a',
-    marginBottom: 8,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d9e0e6',
-    padding: 14,
-    gap: 6,
-  },
-  cardHeader: {
-    alignItems: 'center',
+  tabBar: {
+    backgroundColor: colors.panel,
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between',
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.sm,
   },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: '#5b6b7a',
-  },
-  body: {
-    fontSize: 14,
-    color: '#1b2733',
-  },
-  mono: {
-    fontFamily: 'monospace',
-    fontSize: 13,
-    color: '#1b2733',
-  },
-  dim: {
-    fontSize: 12,
-    color: '#5b6b7a',
-  },
-  error: {
-    color: '#9b2c2c',
-    fontSize: 12,
-  },
-  inline: {
+  tabItem: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
+    flex: 1,
+    gap: 2,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#eef1f4',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
+  tabIcon: {
+    color: colors.inkDim,
+    fontSize: 16,
   },
-  badgeOk: {
-    backgroundColor: '#dff5e8',
+  tabIconSelected: {
+    color: colors.brand,
   },
-  badgeWarn: {
-    backgroundColor: '#fff3cd',
-  },
-  badgeMuted: {
-    backgroundColor: '#eef1f4',
-  },
-  badgeText: {
+  tabLabel: {
+    color: colors.inkDim,
     fontSize: 11,
     fontWeight: '600',
-    color: '#5b6b7a',
   },
-  button: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1f6f4a',
-    borderRadius: 8,
-    marginTop: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  buttonRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 4,
-  },
-  buttonPressed: {
-    opacity: 0.75,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  buttonSecondary: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#eef1f4',
-    borderRadius: 8,
-    marginTop: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  buttonSecondaryText: {
-    color: '#1b2733',
-    fontSize: 12,
-    fontWeight: '700',
+  tabLabelSelected: {
+    color: colors.brandStrong,
   },
 });
