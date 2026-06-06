@@ -11,16 +11,18 @@ Read `AGENTS.md` before making changes. `AGENTS.md` is the canonical project con
 
 ## Product Goal
 
-Build a working live demo for the Cursor x ALT+TAB urban AI hackathon. The product must process street/city images, anonymize personal data, detect only inanimate urban objects, and show repeatable results in a web UI.
+Build a working live demo for the Cursor x ALT+TAB urban AI hackathon. The product must process street/city images, anonymize personal data, detect only inanimate urban objects, and show repeatable results in both the Next.js web UI and Expo mobile app.
 
 The MVP is not a generic AI chatbot and not a presentation-only project. The MVP is a functional urban object inventory demo.
+
+The final demo must use live network services. Next.js and Expo must call the deployed Go backend on Render; localhost is development-only and must not be required during judging.
 
 ## Mandatory Technology Stack
 
 Use only the hackathon-approved stack unless `AGENTS.md` is explicitly updated:
 
 - Web frontend: Next.js.
-- Mobile frontend: Expo.
+- Mobile frontend: Expo, included in the delivery scope.
 - Backend: Go.
 - Backend architecture: `masterfabric-go` architecture is mandatory.
 - Backend source repo: `https://github.com/gurkanfikretgunak/masterfabric-go`.
@@ -38,7 +40,7 @@ Do not replace these choices with another framework, hosting provider, backend l
 The project should keep clear boundaries:
 
 - Next.js owns the web demo UI: map, list, detail view, demo status, and user-facing errors.
-- Expo owns mobile screens only if the organizer requires the mobile deliverable.
+- Expo owns the mobile field/review flow and is part of the planned deliverable.
 - Go owns API endpoints, persistence, job orchestration, and integration with the required backend architecture.
 - CV/model processing owns anonymization and object detection.
 - Storage owns only anonymized derived outputs in normal operation.
@@ -50,6 +52,8 @@ For Go backend work:
 - Add new endpoints, services, repositories, and DTOs inside the existing architectural pattern.
 - Keep API contracts structured and typed.
 - Expose health/demo endpoints for Render deployment verification.
+- Make the deployed health and demo API endpoints reachable over the public network.
+- Configure web and mobile API base URLs through environment variables; do not hardcode localhost for production.
 
 For data flow:
 
@@ -98,10 +102,19 @@ Face and plate detectors are allowed only to locate regions that must be anonymi
 
 ## Commit and Delivery Rules
 
-- Commit frequently and push checkpoints to GitHub.
+- Use one focused commit per completed feature and push each checkpoint to GitHub.
+- Do not combine unrelated features into one commit.
 - A single final code dump is not acceptable.
-- Commit at meaningful milestones: rules, scaffold, anonymization, detection, API, UI, deploy, docs.
+- Commit at meaningful milestones: rules, scaffold, anonymization, detection, API, web UI, Expo UI, deploy, presentation, docs.
 - Keep commit messages meaningful and decision-oriented.
+
+## Live Demo and Presentation Rules
+
+- Keep the presentation source, assets, and optional PDF export under `presentation/` in this repository.
+- Version the presentation through normal feature commits; do not rely on an external-only slide deck.
+- The primary demo path must be Vercel web and Expo clients calling the deployed Render Go API over the network.
+- Verify the Render health endpoint, one core API flow, the Vercel UI, and the Expo flow from outside the local development process before judging.
+- An anonymized deterministic fixture may exist as a network-failure fallback, but it does not replace the live network demo.
 
 ## README Requirements
 
@@ -117,6 +130,8 @@ README must explain:
 - KVKK anonymization and raw data deletion process.
 - Demo scenario and expected outputs.
 - Deployment links for Vercel and Render.
+- Expo demo link/build instructions.
+- How to open or export the repository presentation under `presentation/`.
 
 ## Default Implementation Priority
 
@@ -126,9 +141,10 @@ When time is short, follow this order:
 2. Repeatable object detection output.
 3. Go API using the required `masterfabric-go` architecture.
 4. Next.js map/list/detail demo UI.
-5. Render and Vercel deployment.
-6. README, AI documentation, and KVKK deletion/anonymization note.
-7. Cursor SDK bonus automation.
+5. Expo field/review flow.
+6. Render, Vercel, and Expo live network integration.
+7. Repository presentation, README, AI documentation, and KVKK deletion/anonymization note.
+8. Cursor SDK bonus automation.
 
 Do not spend time on optional LLM features, decorative UI, or broad refactors before the live demo works.
 
@@ -137,8 +153,16 @@ Do not spend time on optional LLM features, decorative UI, or broad refactors be
 Run the relevant checks before reporting completion:
 
 - Web: `npm run lint`, `npm run typecheck`, `npm run build` when scripts exist.
+- Expo: run `npx expo-doctor` and verify the app can call the deployed API.
 - Go: `go test ./...` and `go vet ./...`.
 - CV pipeline: run the same fixture twice and verify stable output shape.
-- Deployment: check Vercel web URL and Render API health endpoint.
+- Deployment: check Vercel web URL, Render API health/core endpoint, and Expo-to-Render connectivity over the network.
 
 If a check cannot run because the scaffold does not exist yet, state that clearly in the report.
+
+## Jury Question Checkpoint
+
+- At 14:00, the team has one question for the jury.
+- Before 14:00, maintain a short list of unresolved rule, architecture, scoring, or deliverable risks.
+- Ask the single question whose answer most affects eligibility, architecture, or demo success.
+- Record the answer immediately in `AGENTS.md`, this ruleset, and the relevant decision/documentation file.
