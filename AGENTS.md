@@ -27,6 +27,7 @@ Oncelikli MVP:
 - Database: Render Postgres tercih edilir ve Go backend `DATABASE_URL` ile baglanir. Lokal demo icin gecici JSON/SQLite sadece offline fallback olarak kullanilabilir; final deploy'da kaynak gercegi Postgres olmalidir.
 - Harici API: Google Street View API / Google Maps API, ilk 10.000 istek kotasini koruyacak sekilde cache ve rate-limit ile kullan.
 - AI/CV: Hazir model veya servis kullanilabilir; insan kimligi, kisi profilleme, arac/kisi takibi yasaktir.
+- Model egitimi/fine-tuning compute'u: Modal kullanilabilir. Modal yalnizca lokal anonimlestirme kapisindan gecmis veriyle egitim, deney ve checkpoint uretimi icindir.
 - Final demo entegrasyonlari network uzerinden canli calismalidir: web ve Expo, Render'da yayinlanan Go API'ye baglanir. Localhost yalnizca gelistirme ve kontrollu offline fallback icindir.
 
 Yeni dependency ekleme, mimariyi buyutme veya stack disina cikma ancak acik teknik gerekce varsa yapilir ve README'de belgelenir.
@@ -45,6 +46,7 @@ Yeni dependency ekleme, mimariyi buyutme veya stack disina cikma ancak acik tekn
 - Gerekli tum anahtarlar `.env` icindedir veya `.env.example` icinde placeholder olarak listelenmelidir.
 - `.env` dosyasini asla commit etme, terminalde tam icerigini yazdirma veya loglara dusurme.
 - Vercel, Render, Google ve AI servis CLI/API islemlerinde once `.env` degerlerini kullan.
+- Modal CLI islemlerinde `MODAL_TOKEN_ID` ve `MODAL_TOKEN_SECRET` degerlerini `.env` uzerinden kullan; interaktif login veya token degerini komut satirina acik yazma.
 - CLI komutlari calisirken secret degerlerini maskele; debug ciktisi gerekiyorsa sadece degisken adini ve var/yok durumunu raporla.
 - Eksik secret varsa once `.env.example` guncelle, sonra kullaniciya sadece eksik degisken adini soyle.
 
@@ -53,6 +55,8 @@ Beklenen degisken aileleri:
 - `VERCEL_TOKEN`
 - `RENDER_API_KEY`
 - `HUGGINGFACE_API_KEY` veya `HF_TOKEN`
+- `MODAL_TOKEN_ID`
+- `MODAL_TOKEN_SECRET`
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` veya kullanilan diger AI servis anahtarlari yalnizca acik ihtiyac cikarsa eklenir; MVP odagi Hugging Face/CV ve Cursor SDK bonusudur.
 - `DATABASE_URL`
 - `NEXT_PUBLIC_API_BASE_URL`
@@ -65,6 +69,7 @@ Bu proje icin KVKK uyumu teknik ozellik degil, teslim kriteridir.
 - Kimlik tespiti, kisi profilleme, yuz tanima, plaka okuma, arac/kisi takibi kesin yasak.
 - Ham goruntuler egitim, test veya demo oncesinde yuz ve plaka anonimlestirme hattindan gecmelidir.
 - Anonimlestirme geri dondurulemez olmali; blur veya solid mask yeterli guvenlikte uygulanmali.
+- Modal'a yalnizca lokal anonimlestirme tamamlandiktan sonra uretilen veri yuklenebilir. Ham veya anonimlestirilmesi dogrulanmamis gorsel Modal Volume, container, log ya da artifact'ine giremez.
 - Ham veri sifrelenmemis buluta, acik GitHub reposuna, Vercel/Render build artifact'lerine veya public bucket'a yuklenemez.
 - Hackathon sonunda ham goruntuler silinmeli; silme/anonimlestirme belgesi README veya ayri teslim dokumaninda yer almalidir.
 - Kod ve README, hangi verinin saklandigini ve hangi verinin saklanmadigini acikca belirtmelidir.
@@ -111,6 +116,16 @@ Dar zamanda "calisan dikey demo" her zaman genis ama yarim ozelliklerden once ge
 - Rate limit, API kota ve retry davranisini dusun.
 - Test eklemenin maliyeti dusukse ekle; kritik veri/anonimlestirme davranisini testle.
 
+## Modal Egitim Akisi
+
+- Modal, zorunlu hosting hedefi degildir; Render'daki Go backend'in veya canli urun API'sinin yerine gecmez.
+- Egitim girdisi sirasi sabittir: lokal ham veri -> lokal yuz/plaka anonimlestirme -> anonimlestirme dogrulamasi -> Modal'a aktarim -> egitim/fine-tuning.
+- Dataset ve baslangic modeli Hugging Face kaynakli veya Hugging Face uzerinde belgelenmis olmalidir.
+- Checkpointler gecici olarak private Modal Volume'da tutulabilir; secilen final model private Hugging Face model reposuna aktarilir ve kaynak/versiyon README'de belirtilir.
+- Modal job'u sabit seed, dataset/model revision, hyperparameter ve metrikleri kaydetmelidir; ayni konfigurasyonla tekrar calistirilabilir olmalidir.
+- Modal loglarina gorsel, token, secret, yuz/plaka koordinati veya tanimlayici metadata yazma.
+- Modal CLI kurulumu `modal --version` ile, yetki ise secret degerlerini gostermeden `modal token info` ile dogrulanir.
+
 ## Dogrulama
 
 Bitirdim demeden once uygun olanlari calistir:
@@ -131,6 +146,7 @@ README en az sunlari icermeli:
 - `.env.example` aciklamasi
 - AI araclari dokumantasyonu: Cursor IDE, ajan kurallari, kullanilan prompt/servis/model, gelistirmeyi nasil hizlandirdigi
 - Hugging Face dataset/model kullanimi ve model secim gerekcesi
+- Modal egitim/fine-tuning akisi, GPU secimi, dataset/model revision, tekrar calistirma komutu ve final agirligin Hugging Face konumu
 - Cursor SDK ile ek puan hedefi: hangi script/otomasyon icin kullanildigi, nasil calistirildigi ve ciktisi
 - Cursor CLI kullanildiysa otomasyon ve komutlar
 - KVKK/etik uyum: anonimlestirme, veri minimizasyonu, ham veri silme taahhudu
