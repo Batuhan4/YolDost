@@ -1,6 +1,8 @@
 package gateway_test
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -8,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/Batuhan4/hackcursor/services/api/internal/application/inventory/usecase"
+	routingUseCase "github.com/Batuhan4/hackcursor/services/api/internal/application/routing/usecase"
+	routingModel "github.com/Batuhan4/hackcursor/services/api/internal/domain/routing/model"
 	"github.com/Batuhan4/hackcursor/services/api/internal/gateway"
 	"github.com/Batuhan4/hackcursor/services/api/internal/gateway/handlers"
 	"github.com/Batuhan4/hackcursor/services/api/internal/infrastructure/memory"
@@ -33,7 +37,27 @@ func newTestRouter(t *testing.T) http.Handler {
 			usecase.NewListDetectionsUseCase(repo),
 			usecase.NewListStreetAnalysesUseCase(repo),
 		),
+		RoutesHandler: handlers.NewRoutesHandler(
+			routingUseCase.NewComputeRoutesUseCase(fakeRouteProvider{}),
+		),
 	})
+}
+
+type fakeRouteProvider struct{}
+
+func (fakeRouteProvider) ComputeWalkingRoutes(ctx context.Context, origin, destination routingModel.Coordinate) ([]routingModel.RouteOption, error) {
+	return []routingModel.RouteOption{
+		{
+			ID:                   "google-walk-1",
+			DistanceMeters:       826,
+			DurationSeconds:      741,
+			EncodedPolyline:      "encoded",
+			GoogleRouteLabels:    []string{"DEFAULT_ROUTE"},
+			AnalysisCoverage:     0,
+			OmniSightScore:       nil,
+			RecommendationStatus: "insufficient_analysis_coverage",
+		},
+	}, nil
 }
 
 func TestListStreetAnalyses(t *testing.T) {
@@ -66,6 +90,39 @@ func TestListStreetAnalyses(t *testing.T) {
 		if item.PedestrianComfortPotential < 0 || item.PedestrianComfortPotential > 100 {
 			t.Errorf("comfort potential out of range: %f", item.PedestrianComfortPotential)
 		}
+	}
+}
+
+func TestComputeRoutesReturnsLiveAlternativesWithoutInventedScore(t *testing.T) {
+	router := newTestRouter(t)
+	body := []byte(`{
+		"origin":{"lat":41.0151,"lng":28.8689},
+		"destination":{"lat":41.0192,"lng":28.8725},
+		"preference":"balanced"
+	}`)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/routes", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+	var payload routingModel.ComputeRoutesResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if len(payload.Routes) != 1 {
+		t.Fatalf("route count = %d, want 1", len(payload.Routes))
+	}
+	if payload.Routes[0].OmniSightScore != nil {
+		t.Fatal("score must be null when physical analysis coverage is zero")
+	}
+	if payload.Routes[0].RecommendationStatus != "insufficient_analysis_coverage" {
+		t.Errorf("unexpected recommendation status: %s", payload.Routes[0].RecommendationStatus)
+	}
+	if payload.PersistentCache {
+		t.Error("Google route responses must not be persistently cached")
 	}
 }
 

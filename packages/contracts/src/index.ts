@@ -89,6 +89,34 @@ export interface StreetAnalysis {
   model_id: string | null;
 }
 
+export type RoutePreference =
+  | "balanced"
+  | "open"
+  | "sidewalk"
+  | "green"
+  | "active_frontage";
+
+export interface RouteOption {
+  id: string;
+  distance_meters: number;
+  duration_seconds: number;
+  encoded_polyline: string;
+  google_route_labels: string[];
+  analysis_coverage: number;
+  omnisight_score: number | null;
+  recommendation_status: "analyzed" | "insufficient_analysis_coverage";
+  explanation: string | null;
+}
+
+export interface ComputeRoutesResponse {
+  preference: RoutePreference;
+  routes: RouteOption[];
+  attribution: "Google Maps";
+  disclaimer: string;
+  generated_live: true;
+  persistent_cache: false;
+}
+
 export type AnonymizedRegionType = "face" | "license_plate";
 export type AnonymizationMethod = "gaussian_blur" | "solid_mask";
 

@@ -1,50 +1,69 @@
-# Product Decision: OmniSight Street Intelligence
+# Product Decision: OmniSight Consumer Routing
 
-## Customer and Problem
+## User and Problem
 
-The paying customer is an Istanbul district municipality. Smart City,
-Transport Planning, Public Works, Urban Design, and GIS teams need a repeatable
-way to inspect thousands of street segments and prioritize field review.
+OmniSight is for people choosing a walking route, particularly at night or in
+an unfamiliar neighborhood. Standard maps compare routes mainly by travel time
+and distance. They do not explain differences in physical openness, sidewalk
+availability, greenery, built density, or active-frontage potential.
 
-Citizens, tourists, older adults, disabled pedestrians, and families benefit
-from the resulting interventions, but they are not the first paying customer.
+## Product Promise
 
-## MVP Output
+OmniSight requests real walking alternatives from Google Routes API and
+re-ranks them only when matching physical street-analysis coverage exists.
+Users can prefer:
 
-For each street image or segment, the CV pipeline reports explainable physical
-indicators:
+- balanced
+- more open
+- sidewalk-friendly
+- greener
+- active-frontage potential
 
-- built density: building + wall pixel share
-- openness: sky pixel share
-- sidewalk availability proxy: sidewalk pixel share
-- greenery: vegetation + terrain pixel share
-- road allocation: road pixel share
-- pedestrian comfort potential: a documented weighted combination of the
-  physical indicators
+The product does not guarantee safety, predict crime, count pedestrians, or
+infer demographics. Required wording is:
 
-These are image-derived proxies, not measurements of people, crime, mental
-health, nighttime safety, revenue, or actual pedestrian traffic.
+> Fiziksel cevre gostergelerine gore daha guvenli rota potansiyeli.
 
-## Business Model
+When physical-analysis coverage is insufficient, the API returns the Google
+alternatives without inventing an OmniSight ranking.
 
-1. Paid neighborhood pilot with a fixed number of street kilometers.
-2. Annual municipal SaaS license for dashboard, reports, history, and users.
-3. Usage-based fee for additional imagery or road kilometers.
-4. One-time integration fee for municipal camera, vehicle, GIS, and work-order
-   systems.
-5. Optional recurring before/after intervention reports.
+## Data Boundaries
 
-Future B2B location suitability may use the same physical indicators, but
-revenue prediction is not part of the MVP without sales, rent, and footfall
-ground truth.
+- Google Routes supplies live walking alternatives. Route results are not
+  persistently cached and Google attribution is mandatory.
+- Hugging Face / Mapillary open-license images support the current model demo.
+- Municipal or MOBESE imagery requires written processing authorization and an
+  official stream/API. Public viewing access alone is insufficient.
+- Faces and plates are irreversibly masked locally before model inference,
+  upload, training, or display.
+- Person/rider/vehicle segmentation classes are discarded before persistence.
 
-## Demo Data Decision
+## Revenue Hypotheses
 
-- Public municipal camera viewers may be linked as live operational context.
-  Their imagery is not downloaded or processed without written authorization.
-- The model demo uses `Reubencf/streetview-global` from Hugging Face, sourced
-  from Mapillary and licensed `CC-BY-SA-4.0`.
-- Every selected image passes the local face/license-plate anonymization gate
-  before inference, upload, training, or display.
-- The UI labels fixture and live sources explicitly and never presents an open
-  dataset sample as municipal-owned imagery.
+Revenue is not validated yet. Candidate models:
+
+1. Contextual local sponsorships or promoted venues near a route.
+2. Premium route preferences and saved personal mobility settings.
+3. Institutional mobility partnerships with campuses, hotels, events, or
+   employers.
+4. Aggregated municipal planning analytics as a separate future B2B product.
+
+Ads or sponsorships must never alter physical route scores or be presented as
+safety evidence.
+
+## Cursor SDK Assistant
+
+Cursor SDK will power an optional server-side Route Assistant that explains
+why one route was recommended from structured metrics. End users do not log in
+to Cursor. The application uses a server-held `CURSOR_API_KEY`.
+
+The assistant:
+
+- receives route metrics, not raw imagery or location history
+- cannot change route scores
+- cannot claim guaranteed safety
+- returns an explicit unavailable response when SDK auth/service is missing
+- has no mock AI response
+
+The Go API on Render remains the mandatory core backend. The TypeScript Cursor
+SDK endpoint is a Vercel server-side bonus integration.

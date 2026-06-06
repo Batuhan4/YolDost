@@ -4,7 +4,8 @@
 
 ```mermaid
 flowchart LR
-    SV[Google Street View / Maps API\nor field imagery] --> GATE
+    ROUTES[Google Routes API\nlive walking alternatives] --> API
+    SV[Authorized / open-license\nstreet imagery] --> GATE
     subgraph worker [workers/cv — Python]
         GATE[1. Anonymization gate\nfaces + plates irreversibly masked] --> DET[2. Urban object detection\nanonymized derivative only]
     end
@@ -13,7 +14,7 @@ flowchart LR
         API[REST API /api/v1] --> PG[(Render Postgres\nDATABASE_URL)]
         API -.fallback.-> MEM[(fixture repository\ndeterministic demo data)]
     end
-    API --> WEB[apps/web — Next.js on Vercel\nmap / list / KVKK / health]
+    API --> WEB[apps/web — Next.js on Vercel\nconsumer route comparison]
     API --> MOB[apps/mobile — Expo\nfield review shell]
     CONTRACTS[packages/contracts\nJSON Schema + TS types] -. shared shape .- API
     CONTRACTS -. shared shape .- WEB
@@ -29,8 +30,8 @@ deleted at hackathon end (`docs/kvkk.md`).
 | Component | Owns | Does not own |
 | --- | --- | --- |
 | `workers/cv` | anonymization gate, object detection, result JSON | persistence, HTTP |
-| `services/api` | REST endpoints, persistence, orchestration | UI, model inference |
-| `apps/web` | operational dashboard, user-facing errors | business logic, raw data |
+| `services/api` | live Google walking alternatives, REST endpoints, persistence, orchestration | UI, model inference |
+| `apps/web` | consumer route selection, map, assistant UI, user-facing errors | raw data |
 | `apps/mobile` | field-review shell | everything else (deliberately minimal) |
 | `packages/contracts` | field names + invariants shared by all of the above | runtime code |
 
@@ -64,6 +65,8 @@ the existing pattern: model → repository port → use case → handler → rou
 ## Deployment topology
 
 - **Vercel** builds `apps/web`; `NEXT_PUBLIC_API_BASE_URL` points at Render.
+  The optional server-side Cursor SDK Route Assistant also runs here and uses
+  `CURSOR_API_KEY`; end users never authenticate with Cursor.
 - **Render** runs `services/api` (`go build -o bin/server ./cmd/server`,
   health check `/health/live`) with an attached **Render Postgres**
   (`DATABASE_URL`).

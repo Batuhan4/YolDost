@@ -11,11 +11,11 @@ Read `AGENTS.md` before making changes. `AGENTS.md` is the canonical project con
 
 ## Product Goal
 
-Build a working live demo for the Cursor x ALT+TAB urban AI hackathon. The product is `OmniSight Street Intelligence`: a municipal street-analysis platform that processes authorized or openly licensed street imagery, anonymizes personal data, measures explainable physical street indicators, and shows repeatable results in both the Next.js web UI and Expo mobile app.
+Build a working live demo for the Cursor x ALT+TAB urban AI hackathon. The product is `OmniSight`: a consumer walking-route application that compares live Google walking alternatives using authorized or openly licensed physical street indicators.
 
-The paying customer is the municipality, especially Smart City, Transport Planning, Public Works, Urban Design, and GIS teams. The initial business model is a paid district pilot followed by an annual SaaS license, usage-based analysis, and GIS/work-order integration fees.
+The primary user is a person choosing a walking route, especially at night or in an unfamiliar neighborhood. Municipalities are potential data/integration partners, not the primary MVP customer. Revenue remains a hypothesis: ethical local sponsorships that never alter scores, premium preferences, or institutional mobility partnerships.
 
-The MVP is not a generic AI chatbot and not a presentation-only project. It is a functional street intelligence demo. "Street density" means physical built-environment density derived from inanimate classes such as building, wall, road, sidewalk, sky, and vegetation. It never means person counting, live pedestrian density, demographic inference, crime risk, or guaranteed safety.
+The MVP is not a generic AI chatbot and not a presentation-only project. It is a functional route comparison demo. "Street density" means physical built-environment density derived from inanimate classes such as building, wall, road, sidewalk, sky, and vegetation. It never means person counting, live pedestrian density, demographic inference, crime risk, or guaranteed safety. UI/API wording must say "safer-route potential" or "recommended by physical environment indicators", never "guaranteed safe route".
 
 The final demo must use live network services. Next.js and Expo must call the deployed Go backend on Render; localhost is development-only and must not be required during judging.
 
@@ -31,6 +31,7 @@ Use only the hackathon-approved stack unless `AGENTS.md` is explicitly updated:
 - AI datasets/models: Hugging Face is mandatory.
 - Training/fine-tuning compute: Modal is allowed only after local irreversible anonymization.
 - External imagery/source API: Google Street View / Google Maps API.
+- Walking alternatives: Google Routes API.
 - Web hosting: Vercel.
 - Backend hosting: Render.com.
 - Database: Render Postgres through `DATABASE_URL`.
@@ -91,6 +92,7 @@ Privacy is a hard delivery gate:
 
 - Detect only inanimate urban objects such as signs, bins, poles, damaged roads, and municipal infrastructure.
 - Do not count people or estimate crowd/pedestrian density, even after blurring.
+- Do not ingest public municipal/MOBESE camera frames without written processing authorization.
 - Do not implement identity detection.
 - Do not implement face recognition.
 - Do not implement license plate reading.

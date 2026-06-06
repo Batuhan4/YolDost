@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Batuhan4/hackcursor/packages/contracts/schemas/route-options.schema.json",
+  "title": "ComputeRoutesResponse",
+  "description": "Live Google walking alternatives with optional physical-environment analysis.",
+  "type": "object",
+  "required": ["preference", "routes", "attribution", "disclaimer", "generated_live", "persistent_cache"],
+  "properties": {
+    "preference": {
+      "type": "string",
+      "enum": ["balanced", "open", "sidewalk", "green", "active_frontage"]
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "distance_meters",
+          "duration_seconds",
+          "encoded_polyline",
+          "google_route_labels",
+          "analysis_coverage",
+          "recommendation_status"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "distance_meters": { "type": "integer", "minimum": 0 },
+          "duration_seconds": { "type": "integer", "minimum": 0 },
+          "encoded_polyline": { "type": "string" },
+          "google_route_labels": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "analysis_coverage": { "type": "number", "minimum": 0, "maximum": 1 },
+          "omnisight_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "recommendation_status": {
+            "type": "string",
+            "enum": ["analyzed", "insufficient_analysis_coverage"]
+          },
+          "explanation": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "attribution": { "type": "string", "const": "Google Maps" },
+    "disclaimer": { "type": "string" },
+    "generated_live": { "type": "boolean", "const": true },
+    "persistent_cache": { "type": "boolean", "const": false }
+  },
+  "additionalProperties": false
+}

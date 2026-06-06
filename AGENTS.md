@@ -10,22 +10,28 @@ aciklanabilir sokak gostergelerini harita/durum paneline aktaran calisan bir
 demo uret.
 
 Urun konumlandirmasi:
-- Urun: `OmniSight Street Intelligence`.
-- Odeme yapan ana musteri: ilce belediyelerinin Akilli Sehir, Ulasim Planlama,
-  Fen Isleri, Kentsel Tasarim ve CBS birimleri.
-- Ana problem: belediyelerin binlerce sokagi duzenli olarak personelle
-  inceleyememesi ve mudahale onceligini olculebilir veriye dayandiramamasi.
-- Ana gelir modeli: ucretli mahalle pilotu, yillik belediye SaaS lisansi,
-  islenen yol kilometresi/goruntu bazli analiz ve CBS/is emri entegrasyon
-  ucreti.
-- Vatandas rotasi ve mobil HUD, belediye urununun kamu faydasini gosteren
-  ikincil deneyimdir; MVP'nin odeme yapan musterisi vatandas degildir.
+- Urun: `OmniSight`.
+- Ana kullanici: bir yerden bir yere yuruyen bireyler; ozellikle gece veya
+  bilmedigi bir semtte rota secen kullanicilar, turistler, yaslilar,
+  engelliler ve cocuklu aileler.
+- Ana problem: standart haritalarin rotalari sure/mesafe ile karsilastirip
+  sokagin fiziksel acikligini, kaldirimini, yesilligini ve aktif cephe
+  potansiyelini gostermemesi.
+- Urun vaadi: Google Routes alternatiflerini fiziksel cevre gostergeleriyle
+  yeniden siralayarak kullaniciya tercihine uygun rota potansiyeli sunmak.
+- Gelir modeli henuz dogrulanmamistir. Ilk hipotezler etik ve rotayi
+  etkilemeyen yerel reklam/sponsorlu mekan, premium rota tercihleri ve kurumsal
+  mobilite ortakliklaridir. Sponsor veya reklam, rota skorunu degistiremez.
+- Belediyeler veri/entegrasyon ortagi veya gelecekte analitik musterisi
+  olabilir; MVP'nin ana kullanicisi bireydir.
 
 `Sokak yogunlugu`, insan/yaya sayimi anlamina gelmez. Bu terim yalnizca bina,
 duvar, yol, kaldirim, gokyuzu, yesillik ve cansiz kent elemanlarindan uretilen
 fiziksel yapi yogunlugu ve yaya konforu potansiyeli icin kullanilir. Sucluluk,
 gercek guvenlik, demografi, psikolojik durum, ciro veya canli yaya yogunlugu
-iddiasi uretilmez.
+iddiasi uretilmez. Arayuz ve API "kesin guvenli" veya "guvenlik garantisi"
+demez; `daha guvenli rota potansiyeli` ya da `fiziksel cevre gostergelerine
+gore onerilen rota` der.
 
 Oncelikli MVP:
 1. Goruntu kaynagini al.
@@ -48,6 +54,9 @@ Oncelikli MVP:
 - Hosting: Web icin Vercel. Backend icin Render.com zorunludur.
 - Database: Render Postgres tercih edilir ve Go backend `DATABASE_URL` ile baglanir. Lokal demo icin gecici JSON/SQLite sadece offline fallback olarak kullanilabilir; final deploy'da kaynak gercegi Postgres olmalidir.
 - Harici API: Google Street View API / Google Maps API, ilk 10.000 istek kotasini koruyacak sekilde cache ve rate-limit ile kullan.
+- Rota: Google Routes API `WALK` alternatifleri kullanilir. Google rota
+  icerigi kalici cache'lenmez; Google attribution ve politika gereklilikleri
+  korunur.
 - AI/CV: Hazir model veya servis kullanilabilir; insan kimligi, kisi profilleme, arac/kisi takibi yasaktir.
 - Ana CV tabani: Hugging Face uzerindeki semantic segmentation modeli ile yol,
   kaldirim, bina, duvar, gokyuzu, yesillik ve cansiz kent elemanlari.
@@ -95,6 +104,8 @@ Bu proje icin KVKK uyumu teknik ozellik degil, teslim kriteridir.
 - Model amaci yalnizca kentsel objeler: tabela, direk, cop konteyneri, yol/cevre envanteri gibi kamusal altyapi.
 - Kisi/yaya sayimi, kalabalik yogunlugu, yas/cinsiyet tahmini veya anonim olsa
   dahi insan davranisi analizi MVP kapsaminda degildir.
+- Belediye/MOBESE kamera goruntusu ancak yazili isleme yetkisi ve resmi erisim
+  varsa modele girer. Halka acik izleme sayfasi veri isleme lisansi degildir.
 - Kimlik tespiti, kisi profilleme, yuz tanima, plaka okuma, arac/kisi takibi kesin yasak.
 - Ham goruntuler egitim, test veya demo oncesinde yuz ve plaka anonimlestirme hattindan gecmelidir.
 - Anonimlestirme geri dondurulemez olmali; blur veya solid mask yeterli guvenlikte uygulanmali.

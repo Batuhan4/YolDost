@@ -14,8 +14,10 @@ import (
 	"time"
 
 	"github.com/Batuhan4/hackcursor/services/api/internal/application/inventory/usecase"
+	routingUseCase "github.com/Batuhan4/hackcursor/services/api/internal/application/routing/usecase"
 	"github.com/Batuhan4/hackcursor/services/api/internal/gateway"
 	"github.com/Batuhan4/hackcursor/services/api/internal/gateway/handlers"
+	googleInfra "github.com/Batuhan4/hackcursor/services/api/internal/infrastructure/google"
 	"github.com/Batuhan4/hackcursor/services/api/internal/infrastructure/memory"
 	"github.com/Batuhan4/hackcursor/services/api/internal/shared/config"
 	"github.com/Batuhan4/hackcursor/services/api/internal/shared/logger"
@@ -106,11 +108,15 @@ func buildDependencies(log *slog.Logger, cfg *config.Config) gateway.Dependencie
 	listDemoRuns := usecase.NewListDemoRunsUseCase(repo)
 	listDetections := usecase.NewListDetectionsUseCase(repo)
 	listStreetAnalyses := usecase.NewListStreetAnalysesUseCase(repo)
+	computeRoutes := routingUseCase.NewComputeRoutesUseCase(
+		googleInfra.NewRoutesClient(cfg.Google.APIKey),
+	)
 
 	return gateway.Dependencies{
 		Logger:           log,
 		Config:           cfg,
 		HealthHandler:    handlers.NewHealthHandler(cfg.Database.URL != ""),
 		InventoryHandler: handlers.NewInventoryHandler(listDemoRuns, listDetections, listStreetAnalyses),
+		RoutesHandler:    handlers.NewRoutesHandler(computeRoutes),
 	}
 }

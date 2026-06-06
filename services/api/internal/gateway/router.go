@@ -22,6 +22,7 @@ type Dependencies struct {
 
 	HealthHandler    *handlers.HealthHandler
 	InventoryHandler *handlers.InventoryHandler
+	RoutesHandler    *handlers.RoutesHandler
 }
 
 // NewRouter creates the root chi router with all middleware and routes.
@@ -51,6 +52,7 @@ func NewRouter(deps Dependencies) *chi.Mux {
 		r.Get("/demo-runs", deps.InventoryHandler.ListDemoRuns)
 		r.Get("/detections", deps.InventoryHandler.ListDetections)
 		r.Get("/street-analyses", deps.InventoryHandler.ListStreetAnalyses)
+		r.Post("/routes", deps.RoutesHandler.Compute)
 	})
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
