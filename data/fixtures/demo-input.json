@@ -1,5 +1,5 @@
 {
-  "$comment": "Synthetic fixture — metadata only, contains NO imagery and NO personal data. Single source of truth for placeholder demo runs: workers/cv/run_demo.py materializes the `placeholder` blocks deterministically, and the API fixture repository (services/api/internal/infrastructure/memory) plus the web fallback (apps/web/lib/fixture.ts) mirror the same values.",
+  "$comment": "Synthetic fixture — metadata only, contains NO imagery and NO personal data. Single source of truth for placeholder demo runs: workers/cv/run_demo.py materializes the `placeholder` blocks deterministically, and the API fixture repository (services/api/internal/infrastructure/memory) mirrors the same values for development and tests.",
   "demo_run_id": "demo-fixture-0001",
   "demo_run_name": "Güngören fixture run",
   "model_id": "shirabendor/YOLOV8-oiv7",
