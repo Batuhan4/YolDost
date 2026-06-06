@@ -13,6 +13,7 @@ import {
   fetchWalkingRoutes,
   type MobileRouteOption,
 } from './routePlanner';
+import { colors, radius, shared, spacing } from './theme';
 
 const DEFAULT_ORIGIN = 'Güngören Metro İstasyonu, İstanbul';
 const DEFAULT_DESTINATION = 'Güngören Belediyesi, İstanbul';
@@ -63,7 +64,7 @@ export default function RoutePlannerSection({
 
   async function handleFindRoutes() {
     if (!apiBaseUrl) {
-      setError('EXPO_PUBLIC_API_BASE_URL is not configured.');
+      setError('EXPO_PUBLIC_API_BASE_URL yapılandırılmadı.');
       return;
     }
 
@@ -83,7 +84,7 @@ export default function RoutePlannerSection({
       setError(
         routeError instanceof Error
           ? routeError.message
-          : 'Route request failed.',
+          : 'Rota isteği başarısız oldu.',
       );
     } finally {
       setLoading(false);
@@ -91,22 +92,24 @@ export default function RoutePlannerSection({
   }
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Live Walking Routes</Text>
-      <Text style={styles.dim}>
-        Same Render API and Google Routes geometry as the web demo.
+    <View style={shared.card}>
+      <Text style={shared.cardTitle}>Canlı Yürüyüş Rotaları</Text>
+      <Text style={shared.dim}>
+        Web demosuyla aynı Render API ve Google Routes geometrisi.
       </Text>
 
       <TextInput
         value={origin}
         onChangeText={setOrigin}
         placeholder="Başlangıç"
+        placeholderTextColor={colors.inkDim}
         style={styles.input}
       />
       <TextInput
         value={destination}
         onChangeText={setDestination}
         placeholder="Varış"
+        placeholderTextColor={colors.inkDim}
         style={styles.input}
       />
 
@@ -114,22 +117,22 @@ export default function RoutePlannerSection({
         accessibilityRole="button"
         onPress={() => void handleFindRoutes()}
         style={({ pressed }) => [
-          styles.button,
-          pressed || loading ? styles.buttonPressed : null,
+          shared.button,
+          pressed || loading ? shared.buttonPressed : null,
         ]}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {loading ? 'Calculating routes...' : 'Find live routes'}
+        <Text style={shared.buttonText}>
+          {loading ? 'Rotalar hesaplanıyor...' : 'Rotaları Bul'}
         </Text>
       </Pressable>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={shared.error}>{error}</Text>}
 
       {loading && (
-        <View style={styles.inline}>
-          <ActivityIndicator color="#1f6f4a" />
-          <Text style={styles.body}>Calling live Render API...</Text>
+        <View style={shared.inline}>
+          <ActivityIndicator color={colors.brand} />
+          <Text style={shared.body}>Canlı Render API çağrılıyor...</Text>
         </View>
       )}
 
@@ -144,7 +147,7 @@ export default function RoutePlannerSection({
             <Polyline
               key={route.id}
               coordinates={route.geoPath}
-              strokeColor={selected ? '#1f6f4a' : '#6b7c93'}
+              strokeColor={selected ? colors.brand : colors.routeShortest}
               strokeWidth={selected ? 5 : 3}
               tappable
               onPress={() => setSelectedRouteId(route.id)}
@@ -155,22 +158,22 @@ export default function RoutePlannerSection({
           <Marker
             coordinate={selectedRoute.geoPath[0]}
             title="Başlangıç"
-            pinColor="#1f6f4a"
+            pinColor={colors.brand}
           />
         )}
         {selectedRoute?.geoPath[selectedRoute.geoPath.length - 1] && (
           <Marker
             coordinate={selectedRoute.geoPath[selectedRoute.geoPath.length - 1]}
             title="Varış"
-            pinColor="#0b3d2c"
+            pinColor={colors.brandStrong}
           />
         )}
       </MapView>
 
       {!GOOGLE_MAPS_KEY && (
-        <Text style={styles.dim}>
-          Set EXPO_PUBLIC_GOOGLE_MAPS_API_KEY for Google basemap tiles on
-          device builds.
+        <Text style={shared.dim}>
+          Cihaz derlemelerinde Google harita altlığı için
+          EXPO_PUBLIC_GOOGLE_MAPS_API_KEY tanımla.
         </Text>
       )}
 
@@ -186,15 +189,15 @@ export default function RoutePlannerSection({
               selected ? styles.routeCardSelected : null,
             ]}
           >
-            <Text style={styles.body}>
+            <Text style={styles.routeMetric}>
               {route.durationMin} dk · {route.distanceKm.toFixed(1)} km
             </Text>
-            <Text style={styles.dim}>
+            <Text style={shared.dim}>
               {route.status === 'analyzed' && route.score !== null
                 ? `YolDost skoru ${route.score.toFixed(1)}`
                 : 'Skor üretilmedi (kapsam yetersiz)'}
             </Text>
-            <Text style={styles.dim}>{route.explanation}</Text>
+            <Text style={shared.dim}>{route.explanation}</Text>
           </Pressable>
         );
       })}
@@ -203,76 +206,36 @@ export default function RoutePlannerSection({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d9e0e6',
-    padding: 14,
-    gap: 8,
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: '#5b6b7a',
-  },
-  body: {
-    fontSize: 14,
-    color: '#1b2733',
-  },
-  dim: {
-    fontSize: 12,
-    color: '#5b6b7a',
-  },
-  error: {
-    color: '#9b2c2c',
-    fontSize: 12,
-  },
-  inline: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
   input: {
-    backgroundColor: '#f8fafb',
-    borderColor: '#d9e0e6',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
     borderWidth: 1,
+    color: colors.ink,
     fontSize: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  button: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1f6f4a',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  buttonPressed: {
-    opacity: 0.75,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '700',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md - 2,
   },
   map: {
-    borderRadius: 8,
+    borderRadius: radius.md,
     height: 220,
     width: '100%',
   },
   routeCard: {
-    backgroundColor: '#f8fafb',
-    borderColor: '#d9e0e6',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
     borderWidth: 1,
-    gap: 4,
-    padding: 10,
+    gap: spacing.xs,
+    padding: spacing.md,
   },
   routeCardSelected: {
-    borderColor: '#1f6f4a',
+    borderColor: colors.brand,
+    borderWidth: 1.5,
+  },
+  routeMetric: {
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

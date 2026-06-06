@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YolDost — Pitch Deck · Cursor × ALT+TAB Hackathonu</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%232F9E67'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23F4F5F4'/%3E%3C/svg%3E">
+<style>
+  :root{
+    /* YolDost rebrand palette */
+    --surface:#F4F5F4;      /* soft gri zemin */
+    --panel:#EAECE9;        /* kart zemini */
+    --raised:#FFFFFF;       /* yükseltilmiş yüzey */
+    --soft:#E2EDE8;         /* çok açık yeşil — vurgu kartı */
+    --border:#DCE1DC;       /* açık gri-yeşil çizgi */
+    --brand:#2F9E67;        /* aktif yeşil */
+    --forest:#1B4332;       /* koyu orman yeşili */
+    --ink:#0B0F12;          /* koyu gece — başlık & aksiyon */
+    --ink-soft:#4A5560;     /* soft füme metin */
+    --warm:#A87928;
+    --warm-soft:#F4EEE1;
+    --danger:#9C3D2E;
+    --radius:12px;
+    --shadow:0 2px 10px rgba(11,15,18,.08);
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:var(--font);
+    background:var(--surface);
+    color:var(--ink);
+    overflow:hidden;
+    font-size:clamp(15px,1.15vw,19px);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Deck chrome ---------- */
+  .deck{position:fixed;inset:0}
+
+  .routebar{
+    position:fixed;top:0;left:0;right:0;height:42px;z-index:50;
+    display:flex;align-items:center;padding:0 22px;pointer-events:none;
+  }
+  .routebar .track{position:relative;flex:1;height:3px;background:var(--border);border-radius:99px}
+  .routebar .fill{
+    position:absolute;left:0;top:0;bottom:0;width:0%;
+    background:var(--brand);border-radius:99px;
+    transition:width .45s cubic-bezier(.4,0,.2,1);
+  }
+  .routebar .origin{
+    position:absolute;left:-5px;top:50%;transform:translateY(-50%);
+    width:11px;height:11px;border-radius:50%;
+    background:var(--surface);border:3px solid var(--brand);
+  }
+  .routebar .walker{
+    position:absolute;top:50%;left:0%;transform:translate(-50%,-50%);
+    width:13px;height:13px;border-radius:50%;
+    background:var(--brand);border:3px solid #fff;
+    box-shadow:var(--shadow);
+    transition:left .45s cubic-bezier(.4,0,.2,1);
+  }
+  .routebar .dest{
+    position:absolute;right:-5px;top:50%;transform:translateY(-50%);
+    width:11px;height:11px;border-radius:50%;background:var(--forest);opacity:.4;
+  }
+
+  .hud{position:fixed;bottom:18px;right:22px;z-index:50;display:flex;align-items:center;gap:12px}
+  .counter{font-variant-numeric:tabular-nums;font-size:.72rem;font-weight:600;color:var(--ink-soft);letter-spacing:.08em}
+  .navbtn{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--border);
+    background:var(--raised);color:var(--ink);font-size:1rem;cursor:pointer;
+    display:grid;place-items:center;transition:all .15s;
+  }
+  .navbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .keyhint{
+    position:fixed;bottom:18px;left:22px;z-index:50;font-size:.68rem;
+    color:var(--ink-soft);display:flex;gap:6px;align-items:center;opacity:.85;
+  }
+  kbd{
+    font-family:var(--mono);font-size:.62rem;background:var(--raised);
+    border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;
+    padding:1px 6px;color:var(--ink-soft);
+  }
+
+  /* ---------- Slides ---------- */
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;
+    padding:64px clamp(28px,6vw,96px) 56px;
+    opacity:0;visibility:hidden;transform:translateY(14px);
+    transition:opacity .4s ease,transform .4s ease,visibility .4s;
+    overflow-y:auto;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:none;z-index:10}
+  .inner{width:100%;max-width:1180px;margin:auto}
+
+  .rv{opacity:0}
+  .active .rv{animation:rise .55s cubic-bezier(.2,.6,.2,1) both;animation-delay:calc(var(--d,0)*95ms)}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  .kicker{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:.7rem;font-weight:700;letter-spacing:.22em;
+    color:var(--brand);text-transform:uppercase;margin-bottom:18px;
+  }
+  .kicker::before{content:"";width:26px;height:2px;background:var(--brand);border-radius:2px}
+
+  h1{font-size:clamp(2.6rem,5.6vw,4.6rem);line-height:1.06;font-weight:800;letter-spacing:-.025em;color:var(--ink)}
+  h2{font-size:clamp(1.7rem,3.4vw,2.7rem);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;color:var(--ink)}
+  .lead{font-size:clamp(1rem,1.5vw,1.22rem);color:var(--ink-soft);max-width:64ch}
+  .accent{color:var(--brand)}
+  .muted{color:var(--ink-soft)}
+  strong{font-weight:700;color:var(--ink)}
+  .lead strong{color:var(--ink)}
+
+  /* map texture backdrop */
+  .mapbg{position:absolute;inset:0;z-index:-1;overflow:hidden;background:var(--panel)}
+  .mapbg .grid{
+    position:absolute;inset:-2%;
+    background-image:
+      repeating-linear-gradient(0deg,#fff 0 8px,transparent 8px 104px),
+      repeating-linear-gradient(90deg,#fff 0 8px,transparent 8px 136px);
+    opacity:.8;
+    -webkit-mask-image:radial-gradient(120% 95% at 50% 42%,#000 30%,transparent 78%);
+            mask-image:radial-gradient(120% 95% at 50% 42%,#000 30%,transparent 78%);
+  }
+  .mapbg .park{position:absolute;background:var(--soft);border-radius:16px;opacity:.95}
+  .mapbg .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(244,245,244,.3),rgba(244,245,244,.94) 86%)}
+
+  .coverroute{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+  .coverroute path{
+    fill:none;stroke:var(--brand);stroke-width:3.2;stroke-linecap:round;
+    stroke-dasharray:8 11;opacity:.55;
+  }
+  .active .coverroute path{animation:dash 2.6s ease-out both .25s}
+  @keyframes dash{from{stroke-dashoffset:680;opacity:0}to{stroke-dashoffset:0;opacity:.55}}
+
+  /* generic blocks */
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
+  .card.raised{background:var(--raised)}
+  .card.softgreen{background:var(--soft);border-color:#CBDDD3}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;
+    border:1px solid var(--border);background:var(--raised);
+    border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:600;
+  }
+  .pill.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--brand)}
+  .pill.on .dot{background:var(--brand)}
+
+  .badge{
+    display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.06em;
+    padding:3px 10px;border-radius:999px;text-transform:uppercase;
+  }
+  .badge-brand{background:var(--brand);color:#fff}
+  .badge-soft{background:var(--soft);color:var(--forest)}
+  .badge-dark{background:var(--ink);color:#fff}
+  .badge-warm{background:var(--warm-soft);color:var(--warm)}
+  .badge-neutral{background:var(--raised);color:var(--ink-soft);border:1px solid var(--border)}
+
+  .metric{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:-.02em}
+
+  .term{
+    background:var(--ink);color:#C9D6CE;border-radius:var(--radius);
+    font-family:var(--mono);font-size:clamp(.68rem,.95vw,.84rem);line-height:1.75;
+    padding:18px 22px;overflow-x:auto;
+  }
+  .term .ok{color:#5FD49A;font-weight:700}
+  .term .dim{color:#6E8278}
+  .term .cmd{color:#fff}
+  .term .key{color:#9FC4B2}
+  .term .val{color:#E4D49A}
+  .term .null{color:#DBA17C;font-weight:700}
+
+  table{width:100%;border-collapse:collapse;font-size:clamp(.78rem,1.05vw,.95rem)}
+  th{
+    text-align:left;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:700;padding:0 14px 10px 0;border-bottom:2px solid var(--ink);
+  }
+  td{padding:11px 14px 11px 0;border-bottom:1px solid var(--border);vertical-align:top}
+  td code,.codechip{
+    font-family:var(--mono);font-size:.86em;background:var(--raised);
+    border:1px solid var(--border);border-radius:5px;padding:1px 7px;white-space:nowrap;
+  }
+
+  /* ---------- Slide-specific ---------- */
+  .cover{text-align:center}
+  .cover .event{
+    display:inline-flex;align-items:center;gap:10px;margin-bottom:34px;
+    border:1px solid var(--border);background:rgba(255,255,255,.9);
+    border-radius:999px;padding:9px 22px;font-size:.78rem;font-weight:600;color:var(--ink-soft);
+    backdrop-filter:blur(4px);
+  }
+  .cover .event .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(47,158,103,.4)}50%{box-shadow:0 0 0 7px rgba(47,158,103,0)}}
+  .wordmark{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:26px}
+  .wordmark svg{width:clamp(46px,5vw,64px);height:auto}
+  .wordmark .name{font-size:clamp(2.4rem,4.6vw,3.8rem);font-weight:800;letter-spacing:-.03em}
+  .wordmark .name b{color:var(--brand)}
+  .cover h1{max-width:21ch;margin:0 auto 22px}
+  .cover .sub{font-size:clamp(.95rem,1.5vw,1.18rem);color:var(--ink-soft);max-width:60ch;margin:0 auto 38px}
+  .cover .links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:.8rem}
+  .cover .links .pill{font-family:var(--mono);font-size:.72rem;font-weight:500}
+
+  .bigquote{
+    font-size:clamp(1.35rem,2.6vw,2.05rem);font-weight:700;line-height:1.3;
+    border-left:4px solid var(--brand);padding:6px 0 6px 26px;margin:30px 0;
+    max-width:32ch;letter-spacing:-.01em;
+  }
+  .personas{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+
+  .ind{position:relative;text-align:left}
+  .ind .nm{font-weight:700;font-size:.92rem;margin-bottom:3px}
+  .ind .ds{font-size:.74rem;color:var(--ink-soft);line-height:1.45}
+  .ind .bar{height:5px;border-radius:99px;background:rgba(11,15,18,.07);margin-top:12px;overflow:hidden}
+  .ind .bar i{display:block;height:100%;border-radius:99px;background:var(--brand);width:0}
+  .active .ind .bar i{transition:width 1s cubic-bezier(.2,.6,.2,1) .6s;width:var(--w)}
+  .ind.hero{background:var(--forest);border-color:var(--forest);color:#fff}
+  .ind.hero .nm{color:#fff}
+  .ind.hero .ds{color:rgba(255,255,255,.8)}
+  .ind.hero .bar{background:rgba(255,255,255,.2)}
+  .ind.hero .bar i{background:#7ED9AB}
+  .formula{
+    margin-top:18px;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);
+    background:var(--raised);border:1px dashed var(--border);border-radius:var(--radius);
+    padding:10px 16px;display:inline-block;
+  }
+
+  .flow{display:flex;align-items:stretch;gap:0;margin:26px 0 18px}
+  .flow .node{
+    flex:1;background:var(--raised);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 12px;text-align:center;position:relative;min-width:0;
+  }
+  .flow .node .ic{font-size:1.25rem;margin-bottom:6px}
+  .flow .node .t{font-weight:700;font-size:.78rem;line-height:1.3}
+  .flow .node .s{font-size:.64rem;color:var(--ink-soft);margin-top:4px;line-height:1.4}
+  .flow .node.gate{background:var(--ink);border-color:var(--ink);color:#fff}
+  .flow .node.gate .t{color:#fff}
+  .flow .node.gate .s{color:rgba(255,255,255,.72)}
+  .flow .node.gate::after{
+    content:"ZORUNLU";position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+    background:var(--brand);color:#fff;font-size:.54rem;font-weight:800;letter-spacing:.12em;
+    padding:2px 9px;border-radius:999px;
+  }
+  .flow .arr{align-self:center;color:var(--brand);font-weight:800;padding:0 7px;font-size:1rem;flex:0 0 auto}
+
+  .shots{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:8px}
+  .phone{background:var(--raised);border:1px solid var(--border);border-radius:22px;padding:9px;box-shadow:var(--shadow)}
+  .phone .screen{position:relative;aspect-ratio:9/17;border-radius:14px;overflow:hidden;background:var(--soft)}
+  .phone .screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .phone .ph{
+    position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;
+    align-items:center;justify-content:center;text-align:center;padding:12px;
+    border:2px dashed #C8D8CF;border-radius:14px;color:var(--ink-soft);
+  }
+  .phone .ph .fn{font-family:var(--mono);font-size:.6rem;background:var(--raised);border:1px solid var(--border);border-radius:5px;padding:2px 7px}
+  .phone .ph .lb{font-size:.7rem;font-weight:600;line-height:1.4}
+  .phone .cap{font-size:.7rem;font-weight:600;text-align:center;padding:9px 4px 3px;color:var(--ink-soft)}
+
+  .evshot{background:var(--raised);border:1px solid var(--border);border-radius:var(--radius);padding:8px;box-shadow:var(--shadow)}
+  .evshot .frame{position:relative;aspect-ratio:16/9.6;border-radius:7px;overflow:hidden;background:var(--soft)}
+  .evshot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+  .evshot .cap{font-size:.7rem;color:var(--ink-soft);padding:8px 6px 2px;font-weight:600}
+
+  .livelink{
+    display:flex;align-items:center;gap:14px;background:var(--raised);
+    border:1px solid var(--border);border-radius:var(--radius);padding:15px 20px;
+  }
+  .livelink .led{width:9px;height:9px;border-radius:50%;background:var(--brand);flex:0 0 auto;animation:pulse 2s infinite}
+  .livelink .url{font-family:var(--mono);font-size:clamp(.74rem,1.1vw,.95rem);font-weight:600;word-break:break-all}
+  .livelink .what{margin-left:auto;flex:0 0 auto}
+
+  .layer{position:relative;padding-top:24px;background:var(--raised)}
+  .layer .num{
+    position:absolute;top:-16px;left:18px;width:34px;height:34px;border-radius:50%;
+    background:var(--ink);color:#fff;font-weight:800;display:grid;place-items:center;
+    font-size:.95rem;border:3px solid var(--surface);
+  }
+  .layer.star .num{background:var(--brand)}
+  .layer h3{font-size:1.02rem;margin-bottom:8px}
+  .layer p{font-size:.8rem;color:var(--ink-soft);line-height:1.6}
+  .layer .tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+
+  .bignum{text-align:center;padding:26px 14px;background:var(--raised)}
+  .bignum .v{font-size:clamp(2rem,4.2vw,3.4rem);color:var(--brand)}
+  .bignum .l{font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);text-transform:uppercase;margin-top:6px;line-height:1.45}
+  .scale{display:flex;align-items:center;gap:14px;margin-top:18px}
+  .scale .step{flex:1;background:var(--raised);border:1px solid var(--border);border-radius:var(--radius);padding:13px 18px;display:flex;align-items:baseline;gap:12px}
+  .scale .step .n{font-size:.74rem;color:var(--ink-soft)}
+  .scale .arrow{color:var(--brand);font-weight:800;font-size:1.3rem}
+  .fineprint{
+    margin-top:18px;font-size:.72rem;color:var(--ink-soft);line-height:1.65;
+    border-top:1px dashed var(--border);padding-top:13px;max-width:100ch;
+  }
+
+  .nots{display:flex;gap:9px;flex-wrap:wrap}
+  .not{
+    display:inline-flex;align-items:center;gap:7px;font-size:.76rem;font-weight:700;
+    background:#F7EFED;color:var(--danger);border:1px solid #E8D6D1;
+    border-radius:999px;padding:6px 15px;
+  }
+  .not::before{content:"✕";font-size:.7rem}
+  .commit{
+    margin-top:18px;background:var(--forest);color:#fff;border-radius:var(--radius);
+    padding:16px 22px;font-weight:700;font-size:clamp(.85rem,1.3vw,1.02rem);
+    display:flex;gap:12px;align-items:center;
+  }
+  .commit::before{content:"✓";flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:.85rem}
+
+  .roadcol h3{font-size:.92rem;margin-bottom:12px;display:flex;align-items:center;gap:9px}
+  .roadcol ul{list-style:none}
+  .roadcol li{
+    font-size:.8rem;color:var(--ink-soft);padding:8px 0 8px 22px;position:relative;
+    border-bottom:1px solid var(--border);line-height:1.5;
+  }
+  .roadcol li:last-child{border-bottom:0}
+  .roadcol li::before{content:"";position:absolute;left:4px;top:14px;width:7px;height:7px;border-radius:50%}
+  .roadcol.now li::before{background:var(--ink-soft)}
+  .roadcol.next li::before{background:var(--brand)}
+  .neverstrip{
+    margin-top:20px;text-align:center;font-size:.78rem;font-weight:600;color:var(--ink-soft);
+    background:var(--raised);border:1px solid var(--border);border-radius:999px;padding:11px 22px;
+  }
+
+  .videowrap{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--ink);box-shadow:var(--shadow);aspect-ratio:16/9;max-height:62vh;margin:0 auto}
+  .videowrap video{width:100%;height:100%;display:block;object-fit:contain}
+  .videowrap .vph{
+    position:absolute;inset:0;display:none;flex-direction:column;gap:14px;
+    align-items:center;justify-content:center;color:#C9D6CE;text-align:center;padding:30px;
+  }
+  .videowrap.missing .vph{display:flex}
+  .videowrap.missing video{visibility:hidden}
+  .vph .play{width:74px;height:74px;border-radius:50%;background:var(--brand);display:grid;place-items:center;font-size:1.5rem;color:#fff}
+  .vph .fn{font-family:var(--mono);font-size:.74rem;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.25);border-radius:6px;padding:4px 12px}
+
+  .closing{text-align:center}
+  .closing h1{margin-bottom:14px}
+  .closing .echo{font-size:clamp(1.05rem,1.9vw,1.4rem);color:var(--ink-soft);margin-bottom:40px}
+  .qa{margin-top:42px;font-size:.82rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
+
+  .srcnote{margin-top:14px;font-size:.66rem;color:var(--ink-soft);opacity:.9}
+  .srcnote code{font-family:var(--mono);font-size:.92em}
+
+  /* system loop */
+  .loopback{display:flex;align-items:center;gap:12px;margin:4px 6px 0;font-size:.72rem;color:var(--brand);font-weight:700}
+  .loopback .line{flex:1;border-top:2px dashed var(--brand);opacity:.45}
+  .whynot li{
+    font-size:.8rem;color:var(--ink-soft);padding:9px 0 9px 26px;position:relative;
+    border-bottom:1px solid var(--border);line-height:1.55;list-style:none;
+  }
+  .whynot li:last-child{border-bottom:0}
+  .whynot li::before{
+    content:"⛨";position:absolute;left:0;top:8px;color:var(--forest);font-size:.95rem;
+  }
+  .jtbd{
+    background:var(--ink);color:#fff;border-radius:var(--radius);padding:18px 24px;
+    font-size:clamp(1rem,1.7vw,1.3rem);font-weight:700;letter-spacing:-.01em;
+    display:flex;gap:14px;align-items:center;margin:6px 0 18px;
+  }
+  .jtbd .tag{flex:0 0 auto;font-size:.6rem;letter-spacing:.14em;background:var(--brand);border-radius:999px;padding:4px 11px;font-weight:800}
+  .bloop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+  .bloop .arr{color:var(--brand);font-weight:800}
+  .fw{
+    margin-top:18px;font-size:.74rem;color:var(--ink-soft);background:var(--raised);
+    border:1px solid var(--border);border-radius:999px;padding:10px 20px;text-align:center;
+  }
+  .fw b{color:var(--forest)}
+
+  /* market slide */
+  .why{counter-reset:w}
+  .why .card{position:relative;padding-top:46px;background:var(--raised)}
+  .why .card::before{
+    counter-increment:w;content:"0" counter(w);
+    position:absolute;top:16px;left:20px;
+    font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--brand);
+    letter-spacing:.1em;
+  }
+  .why h3{font-size:.98rem;margin-bottom:7px}
+  .why p{font-size:.78rem;color:var(--ink-soft);line-height:1.6}
+  .moat{
+    margin-top:18px;background:var(--ink);color:#fff;border-radius:var(--radius);
+    padding:18px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+  }
+  .moat .ic{width:38px;height:38px;border-radius:50%;background:var(--brand);display:grid;place-items:center;font-size:1rem;flex:0 0 auto}
+  .moat p{flex:1;min-width:280px;font-size:clamp(.84rem,1.25vw,1rem);font-weight:600;line-height:1.5}
+  .moat p .soft{color:rgba(255,255,255,.65);font-weight:400}
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{overflow:visible;font-size:13px}
+    .routebar,.hud,.keyhint{display:none!important}
+    .deck{position:static}
+    .slide{
+      position:relative;opacity:1!important;visibility:visible!important;transform:none!important;
+      height:100vh;page-break-after:always;overflow:hidden;
+    }
+    .rv{opacity:1!important;animation:none!important}
+    .ind .bar i{width:var(--w);transition:none}
+  }
+  @page{size:landscape;margin:0}
+
+  @media (max-width:900px){
+    .grid3,.grid4,.grid5,.grid2{grid-template-columns:1fr 1fr}
+    .shots{grid-template-columns:repeat(3,1fr)}
+    .flow{flex-wrap:wrap}
+    .flow .node{flex:1 1 28%}
+  }
+</style>
+</head>
+<body>
+
+<div class="routebar" aria-hidden="true">
+  <div class="track">
+    <div class="origin"></div>
+    <div class="fill" id="fill"></div>
+    <div class="walker" id="walker"></div>
+    <div class="dest"></div>
+  </div>
+</div>
+
+<div class="keyhint"><kbd>←</kbd><kbd>→</kbd> gezin · <kbd>F</kbd> tam ekran · <kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</div>
+
+<div class="hud">
+  <span class="counter" id="counter">01 / 19</span>
+  <button class="navbtn" id="prev" aria-label="Önceki slayt">‹</button>
+  <button class="navbtn" id="next" aria-label="Sonraki slayt">›</button>
+</div>
+
+<main class="deck" id="deck">
+
+<!-- ════════ 1 · KAPAK ════════ -->
+<section class="slide cover">
+  <div class="mapbg">
+    <div class="grid"></div>
+    <div class="park" style="left:8%;top:12%;width:130px;height:90px"></div>
+    <div class="park" style="right:11%;top:58%;width:170px;height:110px"></div>
+    <div class="park" style="left:18%;bottom:8%;width:100px;height:70px"></div>
+    <div class="veil"></div>
+  </div>
+  <svg class="coverroute" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M 60 640 L 240 640 L 240 430 L 520 430 L 520 250 L 870 250 L 870 95 L 1140 95"/>
+    <circle cx="60" cy="640" r="9" fill="#F4F5F4" stroke="#2F9E67" stroke-width="4"/>
+    <circle cx="1140" cy="95" r="10" fill="#1B4332"/>
+    <circle cx="1140" cy="95" r="4" fill="#fff"/>
+  </svg>
+  <div class="inner">
+    <div class="event rv" style="--d:1"><span class="dot"></span> Cursor × ALT+TAB Hackathonu — AI Destekli Kentsel Çözümler · 6 Haziran 2026</div>
+    <div class="wordmark rv" style="--d:2">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="2" y="2" width="60" height="60" rx="15" fill="#1B4332"/>
+        <path d="M 16 48 L 16 34 L 32 34 L 32 20 L 48 20" fill="none" stroke="#7ED9AB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.5 7"/>
+        <circle cx="16" cy="48" r="5.5" fill="#F4F5F4" stroke="#7ED9AB" stroke-width="2"/>
+        <circle cx="48" cy="20" r="6.5" fill="#2F9E67"/>
+        <circle cx="48" cy="20" r="2.6" fill="#fff"/>
+      </svg>
+      <div class="name">Yol<b>Dost</b></div>
+    </div>
+    <h1 class="rv" style="--d:3">En kısa yol değil,<br><span class="accent">daha güvenli</span> yol.</h1>
+    <p class="sub rv" style="--d:4">Şehirde yürümenin <strong>güven katmanını</strong> kuruyoruz: YolDost, Google Routes
+    alternatiflerini açıklanabilir sokak zekâsıyla yeniden sıralar. <strong>Bugün canlı, bugün denetlenebilir.</strong></p>
+    <div class="links rv" style="--d:5">
+      <span class="pill"><span class="dot"></span> web-lake-phi-31.vercel.app/pitch</span>
+      <span class="pill"><span class="dot"></span> omnisight-api-70gd.onrender.com</span>
+      <span class="pill">github.com/Batuhan4/hackcursor</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 2 · PROBLEM ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Problem</div>
+    <h2 class="rv" style="--d:2">Haritalar süreyi bilir,<br>sokağı tanımaz.</h2>
+    <p class="lead rv" style="--d:3">Navigasyon devleri <strong>“en hızlı”yı</strong> çözdü ve orada durdu. Ama şehirde yürüyen
+    milyonlarca insan her gün başka bir karar veriyor:</p>
+    <div class="bigquote rv" style="--d:4">“Bu sokak ferah mı? Kaldırımı var mı? Canlı ve aktif mi — yoksa ıssız mı?”</div>
+    <div class="personas rv" style="--d:5">
+      <span class="pill"><span class="dot"></span> Gece yürüyenler</span>
+      <span class="pill"><span class="dot"></span> Şehre yabancı turistler</span>
+      <span class="pill"><span class="dot"></span> Yaşlılar &amp; engelli bireyler</span>
+      <span class="pill"><span class="dot"></span> Çocuklu aileler</span>
+    </div>
+    <p class="lead rv" style="--d:6;margin-top:22px">Bu sorunun cevabı bugün hiçbir haritada yok. İnsanlar rotayı
+    <strong>körlemesine</strong> seçiyor — ya da o yoldan hiç yürümüyor.</p>
+  </div>
+</section>
+
+<!-- ════════ 3 · ÇÖZÜM ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Çözüm</div>
+    <h2 class="rv" style="--d:2">Sokağı gören harita.</h2>
+    <p class="lead rv" style="--d:3">YolDost, Google Routes’tan gelen <strong>canlı yürüyüş alternatiflerini</strong> beş
+    açıklanabilir göstergeyle puanlar ve yeniden sıralar. Kullanıcı yalnızca rotayı değil, <strong>“neden bu rota”</strong> sorusunun cevabını görür.</p>
+    <div class="grid5" style="margin:26px 0 20px">
+      <div class="card raised ind rv" style="--d:4;--w:62%">
+        <div class="nm">Ferahlık</div>
+        <div class="ds">Gökyüzü payından fiziksel açıklık</div>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="card raised ind rv" style="--d:5;--w:48%">
+        <div class="nm">Kaldırım</div>
+        <div class="ds">Kaldırım erişilebilirlik göstergesi</div>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="card raised ind rv" style="--d:6;--w:60%">
+        <div class="nm">Yeşillik</div>
+        <div class="ds">Bitki örtüsü + açık arazi payı</div>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="card raised ind rv" style="--d:7;--w:35%">
+        <div class="nm">Yapı Yoğunluğu</div>
+        <div class="ds">Bina / duvar / çit baskısı</div>
+        <div class="bar"><i></i></div>
+      </div>
+      <div class="card ind hero rv" style="--d:8;--w:74%">
+        <div class="nm">Konfor Potansiyeli</div>
+        <div class="ds">Bileşik yaya konfor skoru</div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+    <div class="rv" style="--d:9;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span class="badge badge-soft">Rota tercihi</span>
+      <span class="pill on">Dengeli</span>
+      <span class="pill">Daha açık</span>
+      <span class="pill">Kaldırım dostu</span>
+      <span class="pill">Daha yeşil</span>
+      <span class="pill">Canlı cephe</span>
+    </div>
+    <div class="formula rv" style="--d:10">konfor = 0.35·ferahlık + 0.35·kaldırım + 0.20·yeşillik + 0.10·(100 − yapı yoğunluğu) — her skor piksel oranlarına kadar izlenebilir</div>
+  </div>
+</section>
+
+<!-- ════════ 4 · ÜRÜN SİSTEMİ ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Ürün Sistemi</div>
+    <h2 class="rv" style="--d:2">Bir özellik değil;<br>kendi kendini güçlendiren bir <span class="accent">sistem.</span></h2>
+    <div class="flow rv" style="--d:3">
+      <div class="node">
+        <div class="ic">🗂️</div>
+        <div class="t">Veri Katmanı</div>
+        <div class="s">Görüntü → anonim → segmentasyon;<br>her sokak kalıcı veri varlığı</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">🧮</div>
+        <div class="t">Skor Katmanı</div>
+        <div class="s">Açıklanabilir endeks;<br>tipli sözleşmelerle servis edilir</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">🧭</div>
+        <div class="t">Deneyim Katmanı</div>
+        <div class="s">Web + mobil + asistan;<br>aynı sözleşme, üç istemci</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">🔁</div>
+        <div class="t">Davranış Sinyali</div>
+        <div class="s">Tercihler &amp; kapsama talebi →<br>yeni analiz önceliği</div>
+      </div>
+    </div>
+    <div class="loopback rv" style="--d:4"><span class="line"></span> ↺ davranış sinyali veri katmanını besler — döngü kapanır <span class="line"></span></div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card raised rv" style="--d:5">
+        <span class="badge badge-dark">Zor kopyalanan ne?</span>
+        <ul class="whynot" style="margin-top:8px">
+          <li><strong>KVKK-önce boru hattı</strong> sonradan eklenemez — anonimleştirme kapısı mimarinin sıfırıncı adımı.</li>
+          <li><strong>Birikimli sokak-analiz varlığı:</strong> kapsama zamanla derinleşir; geç gelen sıfırdan başlar.</li>
+          <li><strong>Açıklanabilirlik sözleşmesi:</strong> her skor piksel oranına kadar denetlenebilir — kara kutu rakip güven üretemez.</li>
+        </ul>
+      </div>
+      <div class="card softgreen rv" style="--d:6">
+        <span class="badge badge-soft">Sistem tasarımı kararları</span>
+        <ul class="whynot" style="margin-top:8px">
+          <li>Skorlar <strong>önceden hesaplanır</strong>, istek anında değil — okuma ucuz, ölçek doğal.</li>
+          <li>Eğitim (Modal) ile ürün (Render) <strong>fiziksel olarak ayrık</strong> — model riski ürünü düşüremez.</li>
+          <li>Kapsama eşiği altında <strong>skor üretilmez</strong> — sistem kendi sınırını bilir ve söyler.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 5 · DAVRANIŞ & DENEYİM ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Kullanıcı Deneyimi</div>
+    <h2 class="rv" style="--d:2">UI değil, <span class="accent">davranış</span> tasarlıyoruz.</h2>
+    <div class="jtbd rv" style="--d:3"><span class="tag">JTBD</span>“Gece, bilmediğim bir semtte, eve <em>içim rahat</em> yürüyerek varmak istiyorum.”</div>
+    <div class="bloop rv" style="--d:4">
+      <span class="pill on">Rota iste</span><span class="arr">→</span>
+      <span class="pill">Nedenini gör</span><span class="arr">→</span>
+      <span class="pill">Güven oluşur</span><span class="arr">→</span>
+      <span class="pill">Tercihini kaydet</span><span class="arr">→</span>
+      <span class="pill"><span class="dot"></span> Tekrar gel</span>
+    </div>
+    <div class="grid3">
+      <div class="card raised rv" style="--d:5">
+        <h3 style="font-size:.95rem;margin-bottom:6px">Şeffaflık davranış yaratır</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft)">Her rota kartında tek cümlelik Türkçe gerekçe. Veri yoksa skor <code>null</code> —
+        bu dürüstlük kısa vadede rozet kaybettirir, uzun vadede <strong>alışkanlık</strong> kazandırır.</p>
+      </div>
+      <div class="card raised rv" style="--d:6">
+        <h3 style="font-size:.95rem;margin-bottom:6px">Tercihler = davranış segmentleri</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft)"><strong>Daha açık</strong> → gece yürüyeni · <strong>Kaldırım dostu</strong> → ebeveyn &amp;
+        erişilebilirlik · <strong>Daha yeşil</strong> → sağlık/keyif · <strong>Canlı cephe</strong> → turist. Mod seçimi bize segment söyler.</p>
+      </div>
+      <div class="card raised rv" style="--d:7">
+        <h3 style="font-size:.95rem;margin-bottom:6px">Sürtünmesiz kritik an</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft)">Tek girdi çifti → üç karşılaştırılabilir kart → tek dokunuş.
+        “Neden?” kalırsa Rota Asistanı sohbetle kapatır — karar anında terk yok.</p>
+      </div>
+    </div>
+    <div class="fw rv" style="--d:8">Product thinking çerçevesi: <b>Kullanıcı/JTBD → Problem → Hipotez → Sistem → Metrik → Risk</b> — bu sunum da aynı sırayla kurgulandı.</div>
+  </div>
+</section>
+
+<!-- ════════ 6 · PAZAR & VİZYON ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Pazar &amp; Vizyon</div>
+    <h2 class="rv" style="--d:2">Navigasyonun kazananı belli.<br>Yürünebilirlik katmanı ise <span class="accent">boş.</span></h2>
+    <div class="grid3 why" style="margin-top:26px">
+      <div class="card rv" style="--d:3">
+        <h3>Gündem bizden yana</h3>
+        <p>Yürünebilir şehir, 15 dakikalık şehir ve gece güvenliği her belediyenin ve her kent sakininin masasında.
+        Talep var; ölçen ürün yok.</p>
+      </div>
+      <div class="card rv" style="--d:4">
+        <h3>Maliyet eşiği kırıldı</h3>
+        <p>Açık lisanslı sokak görüntüsü + olgun segmentasyon modelleri, sokak analizini saniyeler ve kuruşlar
+        seviyesine indirdi. Dün imkânsızdı, bugün ucuz.</p>
+      </div>
+      <div class="card rv" style="--d:5">
+        <h3>Uyum = bariyer</h3>
+        <p>KVKK-önce mimarimiz taklit edilmesi en zor parça: anonimleştirme kapısı sonradan eklenmez,
+        baştan kurulur. Rakipler için engel, bizim için çekirdek.</p>
+      </div>
+    </div>
+    <div class="moat rv" style="--d:6">
+      <div class="ic">⟳</div>
+      <p>Analiz edilen her sokak <strong>kalıcı bir veri varlığı</strong>na dönüşür. <span class="soft">Kapsama büyüdükçe rota kalitesi,
+      rota kalitesi arttıkça kullanıcı ve B2B değeri birlikte büyür — birleşik bir veri çarkı.</span></p>
+    </div>
+    <p class="lead rv" style="--d:7;margin-top:18px"><strong>Vizyon:</strong> YolDost’u şehirlerin yürünebilirlik standardı yapmak —
+    önce İstanbul, sonra yoğun her şehir. Rota uygulaması bir başlangıç; asıl ürün, <strong>şehrin yürüyüş zekâsı</strong>.</p>
+  </div>
+</section>
+
+<!-- ════════ 5 · MİMARİ ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Mimari</div>
+    <h2 class="rv" style="--d:2">Anonimleştirme kapısından geçmeyen<br>hiçbir piksel sisteme giremez.</h2>
+    <div class="flow rv" style="--d:3">
+      <div class="node">
+        <div class="ic">🛰️</div>
+        <div class="t">Sokak Görüntüsü</div>
+        <div class="s">Street View API ·<br>Mapillary / Hugging Face</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node gate">
+        <div class="ic">🔒</div>
+        <div class="t">KVKK Kapısı</div>
+        <div class="s">Yüz + plaka<br>geri döndürülemez maske</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">🧠</div>
+        <div class="t">SegFormer Segmentasyon</div>
+        <div class="s">11 cansız kent sınıfı<br>kişi/araç sınıfları atılır</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">📊</div>
+        <div class="t">Açıklanabilir Göstergeler</div>
+        <div class="s">5 skor + metaveri<br>(JSON)</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">⚙️</div>
+        <div class="t">Go API</div>
+        <div class="s">masterfabric-go mimarisi<br>Render · Frankfurt</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="ic">📱</div>
+        <div class="t">Web + Mobil</div>
+        <div class="s">Next.js · Vercel<br>Expo · canlı network</div>
+      </div>
+    </div>
+    <div class="grid3 rv" style="--d:4">
+      <div class="card raised">
+        <span class="badge badge-soft">Tek sözleşme</span>
+        <p style="font-size:.8rem;color:var(--ink-soft);margin-top:9px"><code>packages/contracts</code> — JSON Schema + TypeScript tipleri; web, mobil ve Go aynı şemayı konuşur.</p>
+      </div>
+      <div class="card raised">
+        <span class="badge badge-soft">Canlı rotalar</span>
+        <p style="font-size:.8rem;color:var(--ink-soft);margin-top:9px">Google Routes API <code>WALK</code> alternatifleri her istekte canlı; kalıcı cache yok, attribution korunur.</p>
+      </div>
+      <div class="card raised">
+        <span class="badge badge-soft">Eğitim ≠ Ürün</span>
+        <p style="font-size:.8rem;color:var(--ink-soft);margin-top:9px">Modal yalnızca eğitim compute’u; ürün backend’i her zaman Render’daki Go API.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 8 · ÖLÇEKLENEBİLİRLİK ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Ölçek</div>
+    <h2 class="rv" style="--d:2">Üç eksende ölçeklenir:<br>şehir · kullanıcı · senaryo.</h2>
+    <div class="grid3" style="margin-top:26px">
+      <div class="card raised rv" style="--d:3">
+        <span class="badge badge-soft">Şehir</span>
+        <h3 style="font-size:.98rem;margin:10px 0 7px">Kod değişmez, kapsama değişir</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft);line-height:1.6">Segmentasyon sınıfları (yol, kaldırım, bina, gökyüzü, yeşillik)
+        <strong>evrensel kent öğeleri</strong> — modele şehir öğretmek gerekmez. Yeni şehir = yeni görüntü kaynağı + aynı boru hattı.
+        Güngören → İstanbul → herhangi bir yoğun şehir.</p>
+      </div>
+      <div class="card raised rv" style="--d:4">
+        <span class="badge badge-soft">Kullanıcı</span>
+        <h3 style="font-size:.98rem;margin:10px 0 7px">Okuma ucuz, yük dağıtık</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft);line-height:1.6">Skorlar önceden hesaplanır; istek anında yalnızca okunur.
+        <strong>Stateless Go API</strong> (masterfabric-go katmanları) yatayda çoğalır; Next.js Vercel CDN’inde, Expo istemcide.
+        Ağır CV işi kullanıcı yolunda değil.</p>
+      </div>
+      <div class="card raised rv" style="--d:5">
+        <span class="badge badge-soft">Senaryo</span>
+        <h3 style="font-size:.98rem;margin:10px 0 7px">Aynı altyapı, yeni işler</h3>
+        <p style="font-size:.78rem;color:var(--ink-soft);line-height:1.6">Sokak zekâsı katmanı yürüyüşle sınırlı değil: koşu &amp; bisiklet rotaları,
+        saha personeli güzergâhları, turizm yürüyüşleri, erişilebilirlik denetimi, kent planlama raporları.
+        <code>contracts</code> paketi yeni istemciyi ucuzlatır.</p>
+      </div>
+    </div>
+    <div class="moat rv" style="--d:6">
+      <div class="ic">⤢</div>
+      <p>Ölçekte tek değişken <strong>veri kapsaması</strong> — mimari değil. <span class="soft">Sistem ilk günden çok-şehir, çok-istemci, çok-senaryo varsayımıyla tasarlandı.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 9 · ÜRÜN EKRANLARI ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Ürün</div>
+    <h2 class="rv" style="--d:2">Uygulamadan kareler <span class="muted" style="font-size:.55em;font-weight:600">· yeni arayüz</span></h2>
+    <div class="shots">
+      <div class="phone rv" style="--d:3">
+        <div class="screen">
+          <div class="ph"><span class="lb">Onboarding</span><span class="fn">assets/app-01.png</span></div>
+          <img src="assets/app-01.png" alt="Onboarding" onerror="this.remove()">
+        </div>
+        <div class="cap">Onboarding</div>
+      </div>
+      <div class="phone rv" style="--d:4">
+        <div class="screen">
+          <div class="ph"><span class="lb">Güvenli Rota Aktif</span><span class="fn">assets/app-02.png</span></div>
+          <img src="assets/app-02.png" alt="Güvenli rota" onerror="this.remove()">
+        </div>
+        <div class="cap">Güvenli rota görünümü</div>
+      </div>
+      <div class="phone rv" style="--d:5">
+        <div class="screen">
+          <div class="ph"><span class="lb">Güvenli Duraklar</span><span class="fn">assets/app-03.png</span></div>
+          <img src="assets/app-03.png" alt="Güvenli Duraklar" onerror="this.remove()">
+        </div>
+        <div class="cap">Güvenli Duraklar</div>
+      </div>
+      <div class="phone rv" style="--d:6">
+        <div class="screen">
+          <div class="ph"><span class="lb">Yol Üstü Fırsatlar</span><span class="fn">assets/app-04.png</span></div>
+          <img src="assets/app-04.png" alt="Yol Üstü Fırsatlar" onerror="this.remove()">
+        </div>
+        <div class="cap">Yol Üstü Fırsatlar</div>
+      </div>
+      <div class="phone rv" style="--d:7">
+        <div class="screen">
+          <div class="ph"><span class="lb">Rota Asistanı</span><span class="fn">assets/app-05.png</span></div>
+          <img src="assets/app-05.png" alt="Rota Asistanı" onerror="this.remove()">
+        </div>
+        <div class="cap">Rota Asistanı (Cursor SDK)</div>
+      </div>
+      <div class="phone rv" style="--d:8">
+        <div class="screen">
+          <div class="ph"><span class="lb">Yakınlık bildirimi</span><span class="fn">assets/app-06.png</span></div>
+          <img src="assets/app-06.png" alt="Yakınlık bildirimi" onerror="this.remove()">
+        </div>
+        <div class="cap">Expo yakınlık bildirimi</div>
+      </div>
+    </div>
+    <p class="srcnote rv" style="--d:9">Görseller <code>presentation/assets/app-01.png … app-06.png</code> adlarıyla eklendiğinde otomatik görünür.</p>
+  </div>
+</section>
+
+<!-- ════════ 7 · DÜRÜST SKORLAMA ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Güven</div>
+    <h2 class="rv" style="--d:2">Veri yokken skor uydurmuyoruz.<br><span class="muted" style="font-size:.6em">Çünkü bu ürünün sattığı şey güven.</span></h2>
+    <div class="grid2" style="margin-top:22px;align-items:start">
+      <div class="term rv" style="--d:4">
+<span class="dim">// POST /api/v1/routes — canlı yanıt (Güngören)</span><br>
+{<br>
+&nbsp;&nbsp;<span class="key">"id"</span>: <span class="val">"google-walk-1"</span>,<br>
+&nbsp;&nbsp;<span class="key">"distance_meters"</span>: <span class="val">826</span>,<br>
+&nbsp;&nbsp;<span class="key">"duration_seconds"</span>: <span class="val">741</span>,<br>
+&nbsp;&nbsp;<span class="key">"generated_live"</span>: <span class="ok">true</span>,<br>
+&nbsp;&nbsp;<span class="key">"analysis_coverage"</span>: <span class="val">0</span>,<br>
+&nbsp;&nbsp;<span class="key">"omnisight_score"</span>: <span class="null">null</span>,<br>
+&nbsp;&nbsp;<span class="key">"recommendation_status"</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">"insufficient_analysis_coverage"</span><br>
+}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card raised rv" style="--d:5">
+          <strong style="font-size:.92rem">Skor asla icat edilmez</strong>
+          <p style="font-size:.78rem;color:var(--ink-soft);margin-top:5px">Kapsama eşiğin altındaysa sıralama Google’ın doğal sırasında kalır; rozet gösterilmez.</p>
+        </div>
+        <div class="card raised rv" style="--d:6">
+          <strong style="font-size:.92rem">Attribution korunur</strong>
+          <p style="font-size:.78rem;color:var(--ink-soft);margin-top:5px">Rota geometrisi “Google Maps” ibaresiyle sunulur; kalıcı cache yok.</p>
+        </div>
+        <div class="card raised rv" style="--d:7">
+          <strong style="font-size:.92rem">Sponsor skoru değiştiremez</strong>
+          <p style="font-size:.78rem;color:var(--ink-soft);margin-top:5px">Gelir modeli tasarım gereği rota skoruna dokunamaz — güven, ürünün çekirdeği.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 8 · CANLI KANIT ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Canlı Kanıt · Traction</div>
+    <h2 class="rv" style="--d:2">Slayt değil, ürün: <span class="accent">şu anda yayında.</span></h2>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:18px 0">
+      <div class="livelink rv" style="--d:3">
+        <span class="led"></span>
+        <span class="url">https://web-lake-phi-31.vercel.app</span>
+        <span class="what badge badge-soft">Web · Vercel</span>
+      </div>
+      <div class="livelink rv" style="--d:4">
+        <span class="led"></span>
+        <span class="url">https://omnisight-api-70gd.onrender.com/health/live</span>
+        <span class="what badge badge-soft">Go API · Render</span>
+      </div>
+      <div class="livelink rv" style="--d:5">
+        <span class="led" style="animation:none;background:var(--ink-soft)"></span>
+        <span class="url">github.com/Batuhan4/hackcursor</span>
+        <span class="what badge badge-neutral">41 per-feature commit</span>
+      </div>
+    </div>
+    <div class="grid2" style="align-items:start">
+      <div class="term rv" style="--d:6">
+<span class="dim"># dış ağ doğrulaması · 06.06.2026 12:38 UTC</span><br>
+<span class="cmd">curl $API/health/live</span> <span class="ok">→ 200 ✓</span> <span class="dim">{"status":"alive"}</span><br>
+<span class="cmd">curl -X POST $API/api/v1/routes</span> <span class="ok">→ 200 ✓</span> <span class="dim">2 canlı WALK alternatifi</span><br>
+<span class="cmd">curl $WEB</span> <span class="ok">→ ✓</span> <span class="dim">“Canlı bağlantı hazır”</span><br>
+<span class="cmd">expo typecheck + expo-doctor</span> <span class="ok">→ 21/21 ✓</span><br>
+<span class="cmd">go vet ./... &amp;&amp; go test ./...</span> <span class="ok">→ ✓</span>
+      </div>
+      <div class="grid2" style="gap:14px">
+        <div class="evshot rv" style="--d:7">
+          <div class="frame"><img src="evidence/vercel-home-20260606T123514Z.png" alt="Vercel canlı ana sayfa"
+            onerror="if(this.dataset.f){this.remove()}else{this.dataset.f=1;this.src='../docs/evidence-screenshots/vercel-home-20260606T123514Z.png'}"></div>
+          <div class="cap">Vercel canlı — “Canlı bağlantı hazır”</div>
+        </div>
+        <div class="evshot rv" style="--d:8">
+          <div class="frame"><img src="evidence/vercel-route-assistant-20260606.png" alt="Rota Asistanı yanıtı"
+            onerror="if(this.dataset.f){this.remove()}else{this.dataset.f=1;this.src='../docs/evidence-screenshots/vercel-route-assistant-20260606.png'}"></div>
+          <div class="cap">Rota Asistanı — Cursor SDK canlı yanıtı</div>
+        </div>
+      </div>
+    </div>
+    <p class="srcnote rv" style="--d:9">Bu ekip fikirden canlı, çok istemcili ürüne <strong>tek günde</strong> çıktı — yürütme hızımız, en güçlü varlığımız.</p>
+  </div>
+</section>
+
+<!-- ════════ 9 · CURSOR 3 KATMAN ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">AI Adaptasyonu</div>
+    <h2 class="rv" style="--d:2">Cursor’ı üç katmanda kullandık —<br>ikisi doğrudan üründe.</h2>
+    <div class="grid3" style="margin-top:30px">
+      <div class="card layer rv" style="--d:3">
+        <div class="num">1</div>
+        <h3>Cursor IDE + Ajan Kuralları</h3>
+        <p><code>.cursor/rules/</code> altında iki zorunlu ruleset: <strong>hackathon.mdc</strong> (KVKK sınırları, zorunlu stack,
+        öncelik sırası) ve <strong>commits.mdc</strong> (milestone başına commit politikası). Tüm geliştirme bu kuralların
+        gözetiminde yapıldı.</p>
+        <div class="tagrow">
+          <span class="badge badge-neutral">2 ruleset</span>
+          <span class="badge badge-neutral">41 per-feature commit</span>
+        </div>
+      </div>
+      <div class="card layer star rv" style="--d:4;border-color:var(--brand)">
+        <div class="num">2</div>
+        <h3>Cursor SDK — Üründe</h3>
+        <p><strong>Rota Asistanı:</strong> <code>POST /api/route-assistant</code> Vercel sunucu tarafında
+        <code>@cursor/sdk 1.0.16</code> + <code>composer-2</code> ile rota metriklerini açıklar. Skoru <strong>değiştiremez</strong>;
+        koordinat, görüntü ve konum geçmişi <strong>almaz</strong>. Sandbox + plan mode. Mock yok — anahtar yoksa dürüst 503.</p>
+        <div class="tagrow">
+          <span class="badge badge-brand">Canlı ürün özelliği</span>
+          <span class="badge badge-neutral">Server-side anahtar</span>
+        </div>
+      </div>
+      <div class="card layer rv" style="--d:5">
+        <div class="num">3</div>
+        <h3>Cursor SDK — Otomasyon</h3>
+        <p><code>npm run cursor:demo-readiness</code> — Render, Vercel, Expo, Google Routes ve KVKK kanıt noktalarını tarayıp
+        Markdown <strong>demo hazırlık raporu</strong> ve Türkçe konuşma metni üretir. Dry-run modu ve güvenli çıkış kodlarıyla.</p>
+        <div class="tagrow">
+          <span class="badge badge-soft">Tek komut</span>
+          <span class="badge badge-neutral">docs/cursor-sdk-automation.md</span>
+        </div>
+      </div>
+    </div>
+    <div class="fw rv" style="--d:6"><b>AI ile geliştirme süreci:</b> ruleset-güdümlü ajanlar + Hugging Face model seçimi + Modal GPU eğitimi + Cursor SDK ürün entegrasyonu — fikirden canlıya <b>1 gün, 41 odaklı commit</b>. Tamamı belgeli: <code>docs/ai-usage.md</code></div>
+  </div>
+</section>
+
+<!-- ════════ 10 · MODEL HATTI ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">AI / Modeller</div>
+    <h2 class="rv" style="--d:2">Hugging Face’ten üretime:<br>dört model, tek boru hattı.</h2>
+    <div class="card raised rv" style="--d:3" style="padding:6px 22px;margin:20px 0 16px">
+      <table>
+        <thead><tr><th>Model</th><th>Görev</th><th>Lisans</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>nvidia/segformer-b0 · cityscapes</code></td>
+            <td>Fiziksel gösterge segmentasyonu — yol, kaldırım, bina, gökyüzü, yeşillik</td>
+            <td>NVIDIA / Cityscapes</td>
+          </tr>
+          <tr>
+            <td><code>google/vit-base-patch16-224</code></td>
+            <td>Aktivite/çevre bağlam sınıflandırıcısı (Modal’da fine-tune)</td>
+            <td>Apache-2.0</td>
+          </tr>
+          <tr>
+            <td><code>arnabdhar/YOLOv8-Face-Detection</code></td>
+            <td><strong>Yalnızca</strong> yüz bölgesi tespiti → geri döndürülemez maske</td>
+            <td>AGPL-3.0</td>
+          </tr>
+          <tr>
+            <td><code>Koushim/yolov8-license-plate-detection</code></td>
+            <td><strong>Yalnızca</strong> plaka bölgesi tespiti → geri döndürülemez maske</td>
+            <td>MIT</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid2 rv" style="--d:4">
+      <div class="card softgreen">
+        <span class="badge badge-soft">Veri seti</span>
+        <p style="font-size:.82rem;margin-top:9px"><code>Reubencf/streetview-global</code> — Mapillary kaynaklı, <strong>CC-BY-SA-4.0</strong>.
+        300 dengeli örnek (150 kent + 150 banliyö, sabit seed 42), revizyon sabitlenmiş.</p>
+      </div>
+      <div class="card raised">
+        <span class="badge badge-warm">KVKK notu</span>
+        <p style="font-size:.82rem;margin-top:9px">Kişi / sürücü / araç sınıfları <strong>kalıcılaştırılmadan atılır</strong>.
+        Yüz-plaka modelleri kimlik için değil, yalnızca maskelenecek bölgeyi bulmak için çalışır.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 11 · MODAL EĞİTİMİ ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Eğitim Kanıtı</div>
+    <h2 class="rv" style="--d:2">Anonim veriyle, tekrarlanabilir GPU eğitimi.</h2>
+    <div class="grid4" style="margin:24px 0 4px">
+      <div class="card bignum rv" style="--d:3">
+        <div class="v metric">%88,33</div>
+        <div class="l">Weak-label bağlam uyumu</div>
+      </div>
+      <div class="card bignum rv" style="--d:4">
+        <div class="v metric">0,8833</div>
+        <div class="l">Macro F1<br>(weak-label)</div>
+      </div>
+      <div class="card bignum rv" style="--d:5">
+        <div class="v metric">24,2 sn</div>
+        <div class="l">Eğitim süresi<br>NVIDIA B200</div>
+      </div>
+      <div class="card bignum rv" style="--d:6">
+        <div class="v metric">300</div>
+        <div class="l">Anonim örnek<br>240 / 60 split</div>
+      </div>
+    </div>
+    <div class="scale rv" style="--d:7">
+      <div class="step"><span class="metric" style="font-size:1.25rem">60 örnek</span><span class="n">→ %80,0 uyum (ilk kayıtlı koşu)</span></div>
+      <div class="arrow">→</div>
+      <div class="step" style="border-color:var(--brand);background:var(--soft)"><span class="metric" style="font-size:1.25rem;color:var(--forest)">300 örnek</span><span class="n">→ %88,33 uyum — ölçekleme kanıtı</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><span class="metric" style="font-size:1.25rem">7 koşu</span><span class="n">tamamı raporlu; dengesiz koşu (%53,9) reddedildi</span></div>
+    </div>
+    <p class="fineprint rv" style="--d:8"><strong>Dürüst etiketleme:</strong> Bu metrikler <code>weak_label_context_agreement</code> ve
+    <code>macro_f1_weak_label_context</code> — yardımcı bağlam sınıflandırıcısının zayıf-etiket metrikleridir; piksel düzeyi etiket
+    olmadığından SegFormer için mIoU <strong>iddia edilmez</strong>. Modal yalnızca eğitim compute’udur, ürün backend’i değildir.
+    Checkpoint SHA-256 ile kayıtlı; sabit seed, dataset/model revizyonu ve hiperparametrelerle <strong>aynı sonuç tekrar üretilebilir</strong>.</p>
+  </div>
+</section>
+
+<!-- ════════ 12 · KVKK ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">KVKK &amp; Etik</div>
+    <h2 class="rv" style="--d:2">Önce maskele, sonra analiz et. İstisnasız.</h2>
+    <div class="flow rv" style="--d:3;margin-top:20px">
+      <div class="node">
+        <div class="t">Ham kare</div>
+        <div class="s">yalnızca lokal bellek</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="t">Yüz + plaka tespiti</div>
+        <div class="s">YOLOv8 — yalnızca konum</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node gate">
+        <div class="t">Geri döndürülemez maske</div>
+        <div class="s">solid mask · %20 pay</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="t">Anonim türev + sayaç</div>
+        <div class="s">SHA-256 manifest</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="node">
+        <div class="t">Analiz / Eğitim</div>
+        <div class="s">ancak bu noktadan sonra</div>
+      </div>
+    </div>
+    <div class="grid3" style="margin:16px 0">
+      <div class="card raised rv" style="--d:4">
+        <div class="metric" style="font-size:1.6rem;color:var(--brand)">17 yüz · 14 plaka</div>
+        <p style="font-size:.74rem;color:var(--ink-soft);margin-top:4px">300 örneklik korpusta maskelendi; yalnızca <strong>sayaçlar</strong> saklanır, bölge içeriği asla.</p>
+      </div>
+      <div class="card raised rv" style="--d:5">
+        <div class="metric" style="font-size:1.6rem;color:var(--brand)">300/300</div>
+        <p style="font-size:.74rem;color:var(--ink-soft);margin-top:4px">Preflight manifest doğrulaması: Modal’a yükleme öncesi her dosyada hash + maske kontrolü.</p>
+      </div>
+      <div class="card raised rv" style="--d:6">
+        <strong style="font-size:.86rem">Saklanan / Saklanmayan</strong>
+        <p style="font-size:.74rem;color:var(--ink-soft);margin-top:4px"><span class="accent">✓</span> anonim türev, tespit metaverisi, sayaçlar<br>
+        <span style="color:var(--danger)">✕</span> ham kare, yüz/plaka pikseli, kimlik, plaka metni</p>
+      </div>
+    </div>
+    <div class="nots rv" style="--d:7">
+      <span class="not">Yüz tanıma</span>
+      <span class="not">Plaka OCR</span>
+      <span class="not">Kişi sayımı</span>
+      <span class="not">Demografi çıkarımı</span>
+      <span class="not">Kişi / araç takibi</span>
+    </div>
+    <div class="commit rv" style="--d:8">Hackathon sonunda tüm ham görüntüler geri döndürülemez şekilde silinir — silme kaydı teslim dokümanına işlenir.</div>
+  </div>
+</section>
+
+<!-- ════════ 13 · İŞ MODELİ ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">İş Modeli</div>
+    <h2 class="rv" style="--d:2">Rota dürüst kalır,<br>gelir çevresinden gelir.</h2>
+    <div class="grid4" style="margin:24px 0 16px">
+      <div class="card raised rv" style="--d:3">
+        <span class="badge badge-soft">B2C</span>
+        <h3 style="font-size:.95rem;margin:10px 0 6px">Yol Üstü Fırsatlar</h3>
+        <p style="font-size:.76rem;color:var(--ink-soft)">Rota üzerindeki sponsorlu mekan teklifleri — skor ve sıralamaya <strong>asla dokunamaz</strong>.</p>
+      </div>
+      <div class="card raised rv" style="--d:4">
+        <span class="badge badge-soft">B2C</span>
+        <h3 style="font-size:.95rem;margin:10px 0 6px">Premium tercihler</h3>
+        <p style="font-size:.76rem;color:var(--ink-soft)">Kayıtlı kişisel mobilite ayarları, gelişmiş rota tercihleri ve Güvenli Duraklar.</p>
+      </div>
+      <div class="card raised rv" style="--d:5">
+        <span class="badge badge-soft">B2B</span>
+        <h3 style="font-size:.95rem;margin:10px 0 6px">Kurumsal mobilite</h3>
+        <p style="font-size:.76rem;color:var(--ink-soft)">Kampüs, otel, etkinlik ve işverenler için yürüyüş rotası ortaklıkları.</p>
+      </div>
+      <div class="card raised rv" style="--d:6">
+        <span class="badge badge-soft">B2G</span>
+        <h3 style="font-size:.95rem;margin:10px 0 6px">Belediye analitiği</h3>
+        <p style="font-size:.76rem;color:var(--ink-soft)">Toplulaştırılmış kent planlama göstergeleri — yürünebilirlik raporları.</p>
+      </div>
+    </div>
+    <div class="card softgreen rv" style="--d:7;border-color:var(--brand)">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <span class="badge badge-brand">Expo’da bugün çalışıyor</span>
+        <p style="font-size:.84rem;flex:1;min-width:260px">Kullanıcı partner noktasına <strong>150 m</strong> yaklaşınca yerel bildirim:
+        canlı konum takibi + Haversine mesafe + <code>expo-notifications</code>. “Yol Üstü Fırsatlar”ın çalışan kanıtı.</p>
+      </div>
+    </div>
+    <p class="srcnote rv" style="--d:8">Tasarım kuralı net: sponsor içerik rota skorunu değiştiremez ve güvenlik kanıtı gibi sunulamaz. Güven, satılık değil — ürünün kendisi.</p>
+  </div>
+</section>
+
+<!-- ════════ 14 · LİMİTLER & YOL HARİTASI ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Dürüst Durum</div>
+    <h2 class="rv" style="--d:2">Bugün ne değiliz, yarın neyiz.</h2>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card roadcol now rv" style="--d:3">
+        <h3><span class="badge badge-neutral">Bugünkü limitler</span></h3>
+        <ul>
+          <li>Render Postgres henüz bağlı değil — API bunu <code>database: not_configured</code> ile <strong>açıkça raporluyor</strong></li>
+          <li>Fiziksel analiz kapsaması demo ölçeğinde; şehir geneli değil</li>
+          <li>Yeniden sıralama kapsama eşiği bekliyor — skor dürüstçe <code>null</code></li>
+          <li>Google rotaları cache’lenmez (politika gereği) — her istek canlı</li>
+        </ul>
+      </div>
+      <div class="card roadcol next rv" style="--d:4">
+        <h3><span class="badge badge-brand">Sırada</span></h3>
+        <ul>
+          <li>Render Postgres + segment-rota eşleştirmesiyle gerçek yeniden sıralama</li>
+          <li>Kapsama genişletme: mahalle → ilçe → şehir</li>
+          <li>Belediye veri ortaklıkları — yalnızca yazılı yetki ve toplulaştırılmış veriyle</li>
+          <li>Yeni arayüzün yayına alınması, saha testleri ve erişilebilirlik turu</li>
+        </ul>
+      </div>
+    </div>
+    <div class="neverstrip rv" style="--d:5">
+      Hiçbir zaman: <strong>güvenlik garantisi</strong> · <strong>suç tahmini</strong> · <strong>kişi sayımı</strong> · <strong>demografi çıkarımı</strong> · <strong>plaka okuma</strong> · <strong>takip</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 15 · DEMO VİDEO ════════ -->
+<section class="slide">
+  <div class="inner">
+    <div class="kicker rv" style="--d:1">Demo</div>
+    <h2 class="rv" style="--d:2">Canlı akış: Web → Render → Google Routes → Asistan</h2>
+    <div class="videowrap rv" style="--d:3" id="videowrap">
+      <video controls preload="metadata" id="demovideo">
+        <source src="demo.mp4" type="video/mp4">
+      </video>
+      <div class="vph">
+        <div class="play">▶</div>
+        <strong>Demo videosu</strong>
+        <span style="font-size:.8rem;opacity:.8">Kayıt tamamlanınca dosyayı buraya bırakın:</span>
+        <span class="fn">presentation/demo.mp4</span>
+      </div>
+    </div>
+    <p class="srcnote rv" style="--d:4;text-align:center">Sunum fallback sırası: ① canlı network demosu → ② bu video kaydı → ③ anonimleştirilmiş sabit fixture.</p>
+  </div>
+</section>
+
+<!-- ════════ 16 · KAPANIŞ ════════ -->
+<section class="slide closing">
+  <div class="mapbg">
+    <div class="grid"></div>
+    <div class="park" style="right:9%;top:14%;width:150px;height:95px"></div>
+    <div class="park" style="left:10%;bottom:16%;width:120px;height:85px"></div>
+    <div class="veil"></div>
+  </div>
+  <div class="inner">
+    <div class="wordmark rv" style="--d:1;margin-bottom:30px">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="2" y="2" width="60" height="60" rx="15" fill="#1B4332"/>
+        <path d="M 16 48 L 16 34 L 32 34 L 32 20 L 48 20" fill="none" stroke="#7ED9AB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.5 7"/>
+        <circle cx="16" cy="48" r="5.5" fill="#F4F5F4" stroke="#7ED9AB" stroke-width="2"/>
+        <circle cx="48" cy="20" r="6.5" fill="#2F9E67"/>
+        <circle cx="48" cy="20" r="2.6" fill="#fff"/>
+      </svg>
+      <div class="name">Yol<b>Dost</b></div>
+    </div>
+    <h1 class="rv" style="--d:2">Yürüyüşün standardını<br><span class="accent">birlikte kuralım.</span></h1>
+    <p class="echo rv" style="--d:3">En kısa yol değil, daha güvenli yol — her adımda içine sinen rota.</p>
+    <div class="links rv" style="--d:4;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <span class="pill"><span class="dot"></span> web-lake-phi-31.vercel.app/pitch</span>
+      <span class="pill"><span class="dot"></span> omnisight-api-70gd.onrender.com</span>
+      <span class="pill">github.com/Batuhan4/hackcursor</span>
+    </div>
+    <div class="qa rv" style="--d:5">Teşekkürler · Soru &amp; Cevap</div>
+    <p class="srcnote rv" style="--d:6">Cursor × ALT+TAB Hackathonu 2026 · Pilot &amp; ortaklık görüşmelerine açığız · Tüm kanıtlar repo içinde: <code>docs/</code> · <code>reports/</code> · <code>presentation/</code></p>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  const fill=document.getElementById('fill');
+  const walker=document.getElementById('walker');
+  const counter=document.getElementById('counter');
+  const N=slides.length;
+  let cur=0;
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function show(i,push){
+    cur=Math.max(0,Math.min(N-1,i));
+    slides.forEach((s,k)=>{
+      s.classList.toggle('active',k===cur);
+      s.setAttribute('aria-hidden',k===cur?'false':'true');
+    });
+    const pct=N>1?(cur/(N-1))*100:0;
+    fill.style.width=pct+'%';
+    walker.style.left=pct+'%';
+    counter.textContent=pad(cur+1)+' / '+pad(N);
+    if(push!==false)history.replaceState(null,'','#'+(cur+1));
+  }
+  function next(){show(cur+1)}
+  function prev(){show(cur-1)}
+
+  document.getElementById('next').addEventListener('click',next);
+  document.getElementById('prev').addEventListener('click',prev);
+
+  window.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home'){e.preventDefault();show(0)}
+    else if(e.key==='End'){e.preventDefault();show(N-1)}
+    else if(e.key==='f'||e.key==='F'){
+      if(document.fullscreenElement)document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  });
+
+  let tx=null;
+  window.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  window.addEventListener('touchend',e=>{
+    if(tx===null)return;
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>56)(dx<0?next:prev)();
+    tx=null;
+  },{passive:true});
+
+  const vid=document.getElementById('demovideo');
+  const wrap=document.getElementById('videowrap');
+  if(vid&&wrap){
+    const markMissing=()=>wrap.classList.add('missing');
+    vid.addEventListener('error',markMissing);
+    const src=vid.querySelector('source');
+    if(src)src.addEventListener('error',markMissing);
+  }
+
+  const h=parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(h)?0:h-1,false);
+})();
+</script>
+</body>
+</html>
