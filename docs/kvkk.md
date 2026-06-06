@@ -64,7 +64,14 @@ imagery retention follows Google Maps Platform ToS (no permanent raw caching).
 
 ## Raw data deletion checklist (hackathon end)
 
-Run through this list and record date + operator in the delivery document:
+Preparation (completed before final demo):
+
+- [x] Anonymization gate documented and enforced in `workers/cv/` and contracts.
+- [x] Modal preflight (`python3 workers/cv/preflight_manifest.py`) blocks unverified uploads.
+- [x] `.gitignore` and commit policy exclude raw imagery, `.env`, and model weights.
+- [x] Fixture demo uses metadata-only `data/fixtures/demo-input.json` (no image payloads).
+
+Scheduled post-event deletion (run after judging; record operator + date):
 
 - [ ] `data/raw/`, `data/private/`, `data/interim/` emptied (`rm -rf`, then verify with `ls`)
 - [ ] temporary capture/upload folders (`captures/`, `uploads/`) emptied

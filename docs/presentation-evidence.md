@@ -340,6 +340,7 @@ Presentation checklist:
 - [x] Record latest Expo doctor result: `npx expo-doctor` passed, 21/21.
 - [x] Record latest CV preflight result:
       `records=60 files=60 sha256=60 faces_masked=1 plates_masked=13`.
+- [x] Record latest Cursor SDK route-assistant live call: HTTP `200` on production Vercel (cloud SDK, ~83 s).
 - [ ] Record latest Cursor SDK readiness dry-run result.
 
 ## Live Demo Evidence
@@ -395,6 +396,48 @@ Triggered via Render API (`deploy_id: dep-d8i1hm28qa3s73dvqpj0`) from commit
 | Check | Result |
 | --- | --- |
 | `POST https://web-lake-phi-31.vercel.app/api/route-assistant` with empty `routes` | **FAIL** `400` — `invalid_request` (expected without route metrics) |
+
+### Automated verification run (`2026-06-06T13:05Z` UTC)
+
+Agent: production smoke retest after Vercel env restore, route-assistant cloud SDK
+fix, Güngören fixture route enrichment, and jury deck export.
+
+#### Render API (`https://omnisight-api-70gd.onrender.com`)
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| `GET /health/live` | **PASS** `200` | `{"status":"alive"}` |
+| `POST /api/v1/routes` nested Turkish addresses (web UI) | **PASS** `200` | Güngören Metro → Belediyesi; 2 routes; 1345 m / 1517 m; `generated_live: true` |
+| Route enrichment (post-deploy) | **PENDING** | Commit adds Güngören fixture `street-analyses` spatial join; redeploy required before scores appear live |
+
+#### Vercel web (`https://web-lake-phi-31.vercel.app`)
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Production env | **PASS** | `NEXT_PUBLIC_API_BASE_URL`, `CURSOR_API_KEY`, `CURSOR_MODEL` set on project `web` |
+| Route planner (`agent-browser`) | **PASS** | Prefilled Güngören addresses → 2 live routes (20 dk / 24 dk); no *Canlı rota servisine ulaşılamadı* error |
+| `POST /api/route-assistant` | **PASS** `200` | Cloud Cursor SDK (~83 s); explains `insufficient_analysis_coverage` honestly |
+| Screenshot | saved | `docs/evidence-screenshots/vercel-route-success-20260606T160500Z.png` |
+
+#### Presentation / KVKK
+
+| Check | Result |
+| --- | --- |
+| `presentation/yoldost-deck.pdf` | **PASS** — ~750 KB jury deck export |
+| KVKK prep checklist | **PASS** — anonymization gate, preflight, gitignore documented; raw deletion scheduled post-event |
+
+#### Route score boundary (honest)
+
+Live Google routes in Güngören now return `analysis_coverage: 0` until the fixture
+enrichment commit is deployed. Enrichment uses only the three Güngören fixture
+`street-analyses` points (not invented scores). Routes outside the ~400 m fixture
+corridor remain explicitly unscored.
+
+#### Still pending — **USER**
+
+- [ ] Expo on phone with `EXPO_PUBLIC_API_BASE_URL=https://omnisight-api-70gd.onrender.com`
+- [ ] Physical device foreground location + local notification evidence
+- [ ] Optional Render Postgres (`DATABASE_URL`) for non-fixture persistence
 
 ### Manual evidence — **USER** (placeholders)
 
