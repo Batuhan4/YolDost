@@ -10,11 +10,9 @@ missing=0
 
 has_var() {
   local name="$1"
-  # Set in the current environment?
   if [ -n "${!name:-}" ]; then
     return 0
   fi
-  # Present with a non-empty value in .env? (grep only — value is never echoed)
   if [ -f "$ENV_FILE" ] && grep -qE "^${name}=.+" "$ENV_FILE" 2>/dev/null; then
     return 0
   fi
@@ -31,7 +29,6 @@ check_one() {
   fi
 }
 
-# Requires at least one name of the group to be present.
 check_one_of() {
   local found=""
   for name in "$@"; do
@@ -51,9 +48,20 @@ check_one_of() {
 echo "== Required env names (values are never printed) =="
 check_one_of GOOGLE_MAPS_API_KEY GOOGLE_STREET_VIEW_API_KEY
 check_one_of HF_TOKEN HUGGINGFACE_API_KEY
-check_one DATABASE_URL
 check_one NEXT_PUBLIC_API_BASE_URL
 check_one EXPO_PUBLIC_API_BASE_URL
+check_one_of NEXT_PUBLIC_GOOGLE_MAPS_API_KEY GOOGLE_MAPS_API_KEY
+check_one_of EXPO_PUBLIC_GOOGLE_MAPS_API_KEY GOOGLE_MAPS_API_KEY
+
+echo ""
+echo "== Recommended for live demo (optional) =="
+for name in DATABASE_URL GOOGLE_STREET_VIEW_API_KEY; do
+  if has_var "$name"; then
+    echo "PRESENT  $name"
+  else
+    echo "absent   $name (optional — fixture demo OK without Postgres)"
+  fi
+done
 
 echo ""
 echo "== Optional (deploy / local overrides) =="
@@ -67,7 +75,7 @@ done
 
 echo ""
 if [ "$missing" -gt 0 ]; then
-  echo "RESULT: $missing required name(s) missing — fill .env using .env.example"
+  echo "RESULT: $missing required name(s) missing — fill .env using .env.example, then: bash scripts/sync-env.sh"
   exit 1
 fi
 echo "RESULT: all required env names present"

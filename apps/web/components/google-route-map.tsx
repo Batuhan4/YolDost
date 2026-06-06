@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import type { GeoPoint, RouteOption } from "@/lib/routes";
+import type { RouteOption } from "@/lib/routes";
 
 import DemoMap from "./demo-map";
 import styles from "./google-route-map.module.css";

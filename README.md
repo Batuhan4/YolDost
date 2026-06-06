@@ -57,7 +57,10 @@ docs/                architecture, KVKK, AI usage, and demo plan
 
 ```bash
 cp .env.example .env
+# fill secrets in .env, then sync client env files from the same Google key
+bash scripts/sync-env.sh
 bash scripts/check-env.sh
+bash scripts/smoke-live.sh
 ```
 
 Run each service in a separate terminal:
