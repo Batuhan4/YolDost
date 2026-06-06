@@ -7,24 +7,137 @@ alwaysApply: true
 
 # Cursor Hackathon Rules
 
-Read `AGENTS.md` before making changes. Follow it as the canonical project contract.
+Read `AGENTS.md` before making changes. `AGENTS.md` is the canonical project contract; this file is the Cursor-specific always-on ruleset.
 
-Mandatory constraints:
-- Build a working live demo, not only a presentation.
-- Use Next.js for web, Expo for mobile, Go for backend.
-- Use the `masterfabric-go` architecture for backend work; do not create a custom Go architecture.
-- Use Hugging Face for AI datasets/models.
-- Deploy web to Vercel and backend to Render.com.
-- Use Google Street View / Maps APIs through environment variables.
-- Store secrets only in `.env`; never commit `.env` or raw images.
-- Blur or mask faces and license plates before any object detection, training, upload, or demo processing.
-- Detect only inanimate urban objects. Do not implement identity detection, face recognition, plate reading, person profiling, or vehicle/person tracking.
-- Keep frequent meaningful commits and push checkpoints to GitHub.
-- Document Cursor, AI tools, prompt/model choices, KVKK handling, and demo steps in README.
+## Product Goal
 
-Default implementation priority:
+Build a working live demo for the Cursor x ALT+TAB urban AI hackathon. The product must process street/city images, anonymize personal data, detect only inanimate urban objects, and show repeatable results in a web UI.
+
+The MVP is not a generic AI chatbot and not a presentation-only project. The MVP is a functional urban object inventory demo.
+
+## Mandatory Technology Stack
+
+Use only the hackathon-approved stack unless `AGENTS.md` is explicitly updated:
+
+- Web frontend: Next.js.
+- Mobile frontend: Expo.
+- Backend: Go.
+- Backend architecture: `masterfabric-go` architecture is mandatory.
+- AI datasets/models: Hugging Face is mandatory.
+- External imagery/source API: Google Street View / Google Maps API.
+- Web hosting: Vercel.
+- Backend hosting: Render.com.
+- Database: Render Postgres through `DATABASE_URL`.
+- AI bonus target: Cursor SDK helper automation, documented in README.
+
+Do not replace these choices with another framework, hosting provider, backend language, AI platform, or database unless the organizer gives a new written rule and `AGENTS.md` is updated first.
+
+## Architecture Rules
+
+The project should keep clear boundaries:
+
+- Next.js owns the web demo UI: map, list, detail view, demo status, and user-facing errors.
+- Expo owns mobile screens only if the organizer requires the mobile deliverable.
+- Go owns API endpoints, persistence, job orchestration, and integration with the required backend architecture.
+- CV/model processing owns anonymization and object detection.
+- Storage owns only anonymized derived outputs in normal operation.
+
+For Go backend work:
+
+- Do not invent a custom Go folder architecture.
+- Start from or mirror the `masterfabric-go` repository structure.
+- Add new endpoints, services, repositories, and DTOs inside the existing architectural pattern.
+- Keep API contracts structured and typed.
+- Expose health/demo endpoints for Render deployment verification.
+
+For data flow:
+
+1. Read image/frame input.
+2. Detect faces and plates only for anonymization.
+3. Blur or mask faces and plates irreversibly.
+4. Run urban object detection only after anonymization.
+5. Store detection metadata and anonymized evidence only.
+6. Show results through Go API and Next.js UI.
+
+Never run product object detection, upload, training, or demo display on raw unblurred personal data.
+
+## AI and Model Rules
+
+- Use Hugging Face for datasets/models as required by the organizer.
+- Local YOLO weights may be used only as development/demo cache when compatible with the Hugging Face model story.
+- Do not add Gemini, OpenAI, Anthropic, or another LLM provider unless a concrete feature requires it and `AGENTS.md` plus `.env.example` are updated.
+- The core AI deliverable is computer vision, not text generation.
+- Cursor SDK should be used as a small bonus automation if time allows, such as generating a demo report/checklist from detection outputs or running an AI-assisted project quality checklist.
+- Cursor SDK usage must not block the live demo.
+
+## KVKK and Privacy Rules
+
+Privacy is a hard delivery gate:
+
+- Detect only inanimate urban objects such as signs, bins, poles, damaged roads, and municipal infrastructure.
+- Do not implement identity detection.
+- Do not implement face recognition.
+- Do not implement license plate reading.
+- Do not implement person profiling.
+- Do not implement vehicle/person tracking.
+- Do not store raw face or plate data.
+- Do not commit raw imagery.
+- Do not upload raw imagery to public cloud storage or public repositories.
+- At hackathon end, raw images must be deleted and deletion/anonymization must be documented.
+
+Face and plate detectors are allowed only to locate regions that must be anonymized. Their output must not be used as an identity feature.
+
+## Environment and Secrets
+
+- Put real secrets only in `.env`.
+- Never commit `.env`.
+- Never print secret values to logs or terminal output.
+- Use `.env.example` only for placeholder variable names.
+- Required env families are Google Maps/Street View, Render, Vercel, Hugging Face, `DATABASE_URL`, and `NEXT_PUBLIC_API_BASE_URL`.
+
+## Commit and Delivery Rules
+
+- Commit frequently and push checkpoints to GitHub.
+- A single final code dump is not acceptable.
+- Commit at meaningful milestones: rules, scaffold, anonymization, detection, API, UI, deploy, docs.
+- Keep commit messages meaningful and decision-oriented.
+
+## README Requirements
+
+README must explain:
+
+- Problem and public benefit.
+- Architecture and data flow.
+- Setup and run commands.
+- Environment variables.
+- Cursor ruleset and agentic workflow.
+- Cursor SDK/CLI usage if implemented.
+- Hugging Face model/dataset usage.
+- KVKK anonymization and raw data deletion process.
+- Demo scenario and expected outputs.
+- Deployment links for Vercel and Render.
+
+## Default Implementation Priority
+
+When time is short, follow this order:
+
 1. KVKK-safe anonymization gate.
 2. Repeatable object detection output.
-3. Go API using the required architecture.
-4. Next.js map/list/demo UI.
-5. README and live deployment evidence.
+3. Go API using the required `masterfabric-go` architecture.
+4. Next.js map/list/detail demo UI.
+5. Render and Vercel deployment.
+6. README, AI documentation, and KVKK deletion/anonymization note.
+7. Cursor SDK bonus automation.
+
+Do not spend time on optional LLM features, decorative UI, or broad refactors before the live demo works.
+
+## Verification Before Claiming Done
+
+Run the relevant checks before reporting completion:
+
+- Web: `npm run lint`, `npm run typecheck`, `npm run build` when scripts exist.
+- Go: `go test ./...` and `go vet ./...`.
+- CV pipeline: run the same fixture twice and verify stable output shape.
+- Deployment: check Vercel web URL and Render API health endpoint.
+
+If a check cannot run because the scaffold does not exist yet, state that clearly in the report.
