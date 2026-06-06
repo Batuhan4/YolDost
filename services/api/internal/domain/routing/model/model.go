@@ -1,10 +1,11 @@
 // Package model defines consumer walking-route contracts.
 package model
 
-// Coordinate is a WGS84 point.
+// Coordinate identifies a waypoint by WGS84 point or human-readable address.
 type Coordinate struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Lat     float64 `json:"lat,omitempty"`
+	Lng     float64 `json:"lng,omitempty"`
+	Address string  `json:"address,omitempty"`
 }
 
 // RoutePreference describes how analyzed physical indicators should be weighted.
@@ -25,7 +26,7 @@ type ComputeRoutesRequest struct {
 	Preference  RoutePreference `json:"preference"`
 }
 
-// RouteOption is one Google walking alternative with optional OmniSight analysis.
+// RouteOption is one Google walking alternative with optional YolDost analysis.
 type RouteOption struct {
 	ID                   string   `json:"id"`
 	DistanceMeters       int      `json:"distance_meters"`

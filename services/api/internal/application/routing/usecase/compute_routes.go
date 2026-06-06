@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 
 	"github.com/Batuhan4/hackcursor/services/api/internal/domain/routing/model"
 	"github.com/Batuhan4/hackcursor/services/api/internal/domain/routing/repository"
@@ -44,7 +45,7 @@ func (uc *ComputeRoutesUseCase) Execute(ctx context.Context, request model.Compu
 
 func validate(request model.ComputeRoutesRequest) error {
 	if !validCoordinate(request.Origin) || !validCoordinate(request.Destination) {
-		return domainErr.New(domainErr.ErrValidation, "origin and destination must be valid WGS84 coordinates", nil)
+		return domainErr.New(domainErr.ErrValidation, "origin and destination must be a valid address or WGS84 coordinate", nil)
 	}
 	switch request.Preference {
 	case "", model.PreferenceBalanced, model.PreferenceOpen, model.PreferenceSidewalk, model.PreferenceGreen, model.PreferenceActive:
@@ -55,6 +56,10 @@ func validate(request model.ComputeRoutesRequest) error {
 }
 
 func validCoordinate(coordinate model.Coordinate) bool {
+	if address := strings.TrimSpace(coordinate.Address); address != "" {
+		return len(address) <= 256
+	}
 	return coordinate.Lat >= -90 && coordinate.Lat <= 90 &&
-		coordinate.Lng >= -180 && coordinate.Lng <= 180
+		coordinate.Lng >= -180 && coordinate.Lng <= 180 &&
+		(coordinate.Lat != 0 || coordinate.Lng != 0)
 }

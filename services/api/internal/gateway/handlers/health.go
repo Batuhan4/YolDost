@@ -31,9 +31,9 @@ func (h *HealthHandler) Liveness(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, map[string]string{"status": "alive"})
 }
 
-// Readiness reports dependency status. At scaffold stage the API serves
-// deterministic fixture data, so a missing database does not block readiness;
-// once Render Postgres is wired this must ping the pool instead.
+// Readiness reports dependency status. At scaffold stage the API may serve the
+// deterministic fixture repository; clients display this source explicitly so
+// fixture-backed data is not mistaken for production Postgres data.
 func (h *HealthHandler) Readiness(w http.ResponseWriter, r *http.Request) {
 	services := map[string]string{
 		"repository": "fixture (deterministic demo data)",
