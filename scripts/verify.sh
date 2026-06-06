@@ -80,6 +80,11 @@ section "workers/cv (Python)"
 if [ -f "$ROOT/workers/cv/run_demo.py" ]; then
   if command -v python3 >/dev/null 2>&1; then
     python3 -m py_compile "$ROOT/workers/cv/run_demo.py" && pass "cv worker compiles" || fail "cv worker compiles"
+    python3 -m py_compile \
+      "$ROOT/workers/cv/prepare_hf_demo.py" \
+      "$ROOT/workers/cv/analyze_streets.py" \
+      && pass "street analysis tools compile" \
+      || fail "street analysis tools compile"
     # Placeholder mode is stdlib-only and deterministic: run twice, diff.
     tmp1="$(mktemp)" tmp2="$(mktemp)"
     if python3 "$ROOT/workers/cv/run_demo.py" \

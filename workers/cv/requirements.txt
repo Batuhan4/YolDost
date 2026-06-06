@@ -10,3 +10,6 @@ numpy
 requests
 python-dotenv
 huggingface_hub
+datasets
+transformers
+accelerate

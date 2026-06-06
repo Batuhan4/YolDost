@@ -1,0 +1,227 @@
+{
+  "run_id": "20260606T134500Z-local-baseline",
+  "created_at": "2026-06-06T10:48:28.908729+00:00",
+  "dataset": {
+    "id": "Reubencf/streetview-global",
+    "revision": "a206537534dc0e8165e0e7d36f08df14795127db",
+    "license": "CC-BY-SA-4.0",
+    "source": "Mapillary contributors via Hugging Face",
+    "selection": {
+      "setting": [
+        "urban",
+        "suburban"
+      ],
+      "time_of_day": [
+        "day"
+      ],
+      "seed": 42
+    }
+  },
+  "anonymization": {
+    "method": "solid_mask",
+    "padding_ratio": 0.2,
+    "face_model": {
+      "id": "arnabdhar/YOLOv8-Face-Detection",
+      "revision": "52fa54977207fa4f021de949b515fb19dcab4488",
+      "threshold": 0.15
+    },
+    "plate_model": {
+      "id": "Koushim/yolov8-license-plate-detection",
+      "revision": "9aaa5cd490abe0c165882ba87f4f62658ab54d01",
+      "threshold": 0.15
+    },
+    "faces_masked": 0,
+    "plates_masked": 1
+  },
+  "model": {
+    "id": "nvidia/segformer-b0-finetuned-cityscapes-1024-1024",
+    "revision": "21b3847fae21ddee674abd31129307b6a1235bd9"
+  },
+  "runtime": {
+    "python": "3.12.12",
+    "torch": "2.12.0+cpu",
+    "transformers": "5.10.2"
+  },
+  "benchmark": {
+    "device": "cpu",
+    "gpu_name": null,
+    "image_count": 6,
+    "inference_seconds": 2.938051,
+    "images_per_second": 2.04217,
+    "classes_observed": [
+      "building",
+      "fence",
+      "pole",
+      "road",
+      "sidewalk",
+      "sky",
+      "terrain",
+      "traffic light",
+      "traffic sign",
+      "vegetation",
+      "wall"
+    ]
+  },
+  "accuracy": {
+    "status": "not_measured",
+    "reason": "demo dataset has no matching pixel-level ground truth",
+    "metrics": {}
+  },
+  "summary": {
+    "built_density_pct": 15.38,
+    "openness_score": 62.48,
+    "sidewalk_availability_score": 17.7,
+    "greenery_score": 60.14,
+    "road_share_pct": 28.09,
+    "pedestrian_comfort_potential": 48.55
+  },
+  "images": [
+    {
+      "image": "street-001.jpg",
+      "source_id": "2179096429096562",
+      "region": "Guatemala City",
+      "class_shares": {
+        "building": 0.106912,
+        "fence": 0.028717,
+        "road": 0.186596,
+        "sidewalk": 0.007153,
+        "sky": 0.228572,
+        "terrain": 0.017609,
+        "traffic sign": 0.000137,
+        "vegetation": 0.325175,
+        "wall": 0.030012
+      },
+      "metrics": {
+        "built_density_pct": 16.56,
+        "openness_score": 76.19,
+        "sidewalk_availability_score": 3.58,
+        "greenery_score": 100.0,
+        "road_share_pct": 18.66,
+        "pedestrian_comfort_potential": 56.26
+      },
+      "inference_seconds": 0.589952
+    },
+    {
+      "image": "street-002.jpg",
+      "source_id": "1625113642250565",
+      "region": "Austria - Vienna",
+      "class_shares": {
+        "building": 0.37612,
+        "fence": 0.010128,
+        "road": 0.353929,
+        "sidewalk": 0.016778,
+        "sky": 0.04725,
+        "terrain": 0.000737,
+        "vegetation": 0.127116,
+        "wall": 0.000471
+      },
+      "metrics": {
+        "built_density_pct": 38.67,
+        "openness_score": 15.75,
+        "sidewalk_availability_score": 8.39,
+        "greenery_score": 42.62,
+        "road_share_pct": 35.39,
+        "pedestrian_comfort_potential": 23.11
+      },
+      "inference_seconds": 0.55554
+    },
+    {
+      "image": "street-003.jpg",
+      "source_id": "210413617567544",
+      "region": "North America",
+      "class_shares": {
+        "building": 0.027158,
+        "fence": 0.011509,
+        "pole": 0.0179,
+        "road": 0.051356,
+        "sidewalk": 0.067127,
+        "sky": 0.134965,
+        "terrain": 0.338631,
+        "traffic sign": 0.092129,
+        "vegetation": 0.21071
+      },
+      "metrics": {
+        "built_density_pct": 3.87,
+        "openness_score": 44.99,
+        "sidewalk_availability_score": 33.56,
+        "greenery_score": 100.0,
+        "road_share_pct": 5.14,
+        "pedestrian_comfort_potential": 57.11
+      },
+      "inference_seconds": 0.518143
+    },
+    {
+      "image": "street-004.jpg",
+      "source_id": "155994976690778",
+      "region": "South America",
+      "class_shares": {
+        "building": 0.110682,
+        "pole": 0.004323,
+        "road": 0.216475,
+        "sidewalk": 0.007429,
+        "sky": 0.364322,
+        "terrain": 0.000807,
+        "traffic light": 2.9e-05,
+        "traffic sign": 0.002906,
+        "vegetation": 0.032111
+      },
+      "metrics": {
+        "built_density_pct": 11.07,
+        "openness_score": 100.0,
+        "sidewalk_availability_score": 3.71,
+        "greenery_score": 10.97,
+        "road_share_pct": 21.65,
+        "pedestrian_comfort_potential": 47.39
+      },
+      "inference_seconds": 0.493523
+    },
+    {
+      "image": "street-005.jpg",
+      "source_id": "566352838032952",
+      "region": "South America",
+      "class_shares": {
+        "building": 0.184662,
+        "pole": 0.01247,
+        "road": 0.457097,
+        "sidewalk": 0.031589,
+        "sky": 0.23979,
+        "terrain": 0.017556,
+        "vegetation": 0.032279
+      },
+      "metrics": {
+        "built_density_pct": 18.47,
+        "openness_score": 79.93,
+        "sidewalk_availability_score": 15.79,
+        "greenery_score": 16.61,
+        "road_share_pct": 45.71,
+        "pedestrian_comfort_potential": 44.98
+      },
+      "inference_seconds": 0.410556
+    },
+    {
+      "image": "street-006.jpg",
+      "source_id": "1265688130513530",
+      "region": "Europe",
+      "class_shares": {
+        "building": 0.024352,
+        "fence": 0.010713,
+        "pole": 0.012072,
+        "road": 0.420242,
+        "sidewalk": 0.082317,
+        "sky": 0.174132,
+        "terrain": 0.002848,
+        "vegetation": 0.268998,
+        "wall": 0.001453
+      },
+      "metrics": {
+        "built_density_pct": 3.65,
+        "openness_score": 58.04,
+        "sidewalk_availability_score": 41.16,
+        "greenery_score": 90.62,
+        "road_share_pct": 42.02,
+        "pedestrian_comfort_potential": 62.48
+      },
+      "inference_seconds": 0.370338
+    }
+  ]
+}

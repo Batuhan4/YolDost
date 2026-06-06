@@ -1,0 +1,134 @@
+{
+  "dataset": {
+    "id": "Reubencf/streetview-global",
+    "revision": "a206537534dc0e8165e0e7d36f08df14795127db",
+    "license": "CC-BY-SA-4.0",
+    "source": "Mapillary contributors via Hugging Face",
+    "selection": {
+      "setting": [
+        "urban",
+        "suburban"
+      ],
+      "time_of_day": [
+        "day"
+      ],
+      "seed": 42
+    }
+  },
+  "anonymization": {
+    "method": "solid_mask",
+    "padding_ratio": 0.2,
+    "face_model": {
+      "id": "arnabdhar/YOLOv8-Face-Detection",
+      "revision": "52fa54977207fa4f021de949b515fb19dcab4488",
+      "threshold": 0.15
+    },
+    "plate_model": {
+      "id": "Koushim/yolov8-license-plate-detection",
+      "revision": "9aaa5cd490abe0c165882ba87f4f62658ab54d01",
+      "threshold": 0.15
+    },
+    "faces_masked": 0,
+    "plates_masked": 1
+  },
+  "sample_count": 6,
+  "records": [
+    {
+      "source_id": "2179096429096562",
+      "region": "Guatemala City",
+      "setting": "suburban",
+      "weather": "sunny",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": 14.536885,
+      "longitude": -90.573723,
+      "captured_at": "1707519278600",
+      "anonymized_file": "street-001.jpg",
+      "anonymized_sha256": "ee6e8d0c0d1b8ed128dd29841ab85b14f82b6825a2971911bf41470b688c0a11",
+      "faces_masked": 0,
+      "plates_masked": 0,
+      "mask_method": "solid_mask"
+    },
+    {
+      "source_id": "1625113642250565",
+      "region": "Austria - Vienna",
+      "setting": "urban",
+      "weather": "sunny",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": 48.1875357,
+      "longitude": 16.3260175,
+      "captured_at": "1590059081500",
+      "anonymized_file": "street-002.jpg",
+      "anonymized_sha256": "c5223543a42016f487c89e0791c0ad0736e968d5263bc161db8bc022fb17b8bf",
+      "faces_masked": 0,
+      "plates_masked": 1,
+      "mask_method": "solid_mask"
+    },
+    {
+      "source_id": "210413617567544",
+      "region": "North America",
+      "setting": "suburban",
+      "weather": "sunny",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": 27.961220875019,
+      "longitude": -82.434712217994,
+      "captured_at": "1409313498947",
+      "anonymized_file": "street-003.jpg",
+      "anonymized_sha256": "6658cfb6df8aea3897806022497293d796d85f5a338412f043f8b364d50d8529",
+      "faces_masked": 0,
+      "plates_masked": 0,
+      "mask_method": "solid_mask"
+    },
+    {
+      "source_id": "155994976690778",
+      "region": "South America",
+      "setting": "urban",
+      "weather": "cloudy",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": -1.38200104,
+      "longitude": -48.411710133333,
+      "captured_at": "1628609027799",
+      "anonymized_file": "street-004.jpg",
+      "anonymized_sha256": "f9912bd3c42eddd6ba834b8c02fe1fcd96a2cec139b85b51c1661b5396719164",
+      "faces_masked": 0,
+      "plates_masked": 0,
+      "mask_method": "solid_mask"
+    },
+    {
+      "source_id": "566352838032952",
+      "region": "South America",
+      "setting": "suburban",
+      "weather": "overcast",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": -1.3820024041667,
+      "longitude": -48.41180735,
+      "captured_at": "1628612722291",
+      "anonymized_file": "street-005.jpg",
+      "anonymized_sha256": "2d353908118682e7da05b4a1bfd69bf5d777f57a91e011b46433323c09b51106",
+      "faces_masked": 0,
+      "plates_masked": 0,
+      "mask_method": "solid_mask"
+    },
+    {
+      "source_id": "1265688130513530",
+      "region": "Europe",
+      "setting": "suburban",
+      "weather": "overcast",
+      "time_of_day": "day",
+      "road_type": "paved",
+      "latitude": 55.620605595081,
+      "longitude": 12.618361472102,
+      "captured_at": "1580473295228",
+      "anonymized_file": "street-006.jpg",
+      "anonymized_sha256": "234234f105a27f8a16412086170c5986b9dd2cf27d5c4b8edf3c77bb01b31798",
+      "faces_masked": 0,
+      "plates_masked": 0,
+      "mask_method": "solid_mask"
+    }
+  ],
+  "privacy_note": "Only anonymized derivatives remain. Raw streamed images were held in process memory and were not written to disk."
+}

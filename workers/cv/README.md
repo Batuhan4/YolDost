@@ -41,8 +41,22 @@ python3 workers/cv/run_demo.py \
 
 # Same thing via the repeatability-checked script:
 scripts/demo-fixture.sh
+
+# Prepare open-license Hugging Face / Mapillary samples.
+# Raw images stay in memory; only solid-masked derivatives are written locally.
+set -a; . ./.env; set +a
+.venv/bin/python workers/cv/prepare_hf_demo.py --count 12
+
+# Run semantic street analysis and generate reports/runs/<run-id>/.
+.venv/bin/python workers/cv/analyze_streets.py --device auto
 ```
 
 Real-imagery mode requires `requirements.txt` installed **and** the
 anonymization pipeline wired; until then the worker refuses real images
 (KVKK-safe default). It will never process raw imagery without the gate.
+
+The semantic analysis tool uses only physical Cityscapes classes: road,
+sidewalk, building, wall, fence, pole, traffic light/sign, vegetation, terrain,
+and sky. Person, rider, and vehicle classes are discarded before persistence.
+Its physical scores are transparent planning proxies, not people density,
+crime, guaranteed safety, or revenue predictions.
